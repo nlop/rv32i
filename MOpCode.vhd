@@ -1,0 +1,44 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+
+entity MOpCode is
+    Port ( OpCode : in STD_LOGIC_VECTOR (4 downto 0);
+           CodeOut : out STD_LOGIC_VECTOR(19 downto 0));
+end MOpCode;
+
+architecture Behavioral of MOpCode is
+
+type ROM is array (0 to 31) of STD_LOGIC_VECTOR(19 downto 0);
+
+constant MEM : ROM := (
+    "00001000000001110001", -- VER (0)
+    "00000000010000000000", -- LI  (1)
+    "00000100010000001000", -- LWI (2)
+    "00001000000000001100", -- SWI (3)
+    "00001010000100110101", -- SW  (4)
+    "00000100010100110011", -- ADDI(5)
+    "00000100010101110011", -- SUBI(6)
+    "00000100010100000011", -- ANDI(7)
+    "00000100010100010011", -- ORI (8)
+    "00000100010100100011", -- XORI(9)
+    "00000100010111010011", -- NANDI(10)
+    "00000100010111000011", -- NORI (11)
+    "00000100010101100011", -- XNORI(12)
+    "10010000001100110011", -- JUMP (13)
+    "10010000001100110011", -- JUMP (14)
+    "10010000001100110011", -- JUMP (15)
+    "10010000001100110011", -- JUMP (16)
+    "10010000001100110011", -- JUMP (17)
+    "10010000001100110011", -- JUMP (18)
+    "00010000000000000000", -- B    (19)
+    "01010000000000000000", -- CALL (20)
+    "00100000000000000000", -- RET  (21)
+           (others => '0'), -- NOP  (22)
+    "00000110010100110001", -- LW   (23)     
+    others => (others => '0'));
+
+begin
+    CodeOut <= MEM(CONV_INTEGER(OpCode));
+end Behavioral;
