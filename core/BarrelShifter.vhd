@@ -1,14 +1,20 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
 
+-- N bits barrel shifter..
+-- 
+-- Parameters:
+--      N: word size
+--      SHBITS: # of bits to shift
+--
 entity BarrelShifter is
     generic ( 
         N : integer := 16;
         SHBITS : integer := 4 );
-    Port ( din : in STD_LOGIC_VECTOR (N - 1 downto 0);
-           dout : out STD_LOGIC_VECTOR (N - 1 downto 0);
-           shamt : in STD_LOGIC_VECTOR (SHBITS - 1 downto 0);
-           dir : in STD_LOGIC);
+    port ( din : in std_logic_vector (N - 1 downto 0);
+           dout : out std_logic_vector (N - 1 downto 0);
+           shamt : in std_logic_vector (SHBITS - 1 downto 0);
+           DIR : in std_logic);
 end BarrelShifter;
 
 architecture Behavioral of BarrelShifter is
@@ -18,7 +24,7 @@ process(din, dir, shamt)
 variable aux : std_logic_vector(N - 1 downto 0);
 begin
 aux := din;
-    -- Corrimiento a la IZQ                
+    -- Left shift                
     if(dir = '1') then
         for i in 0 to SHBITS - 1 loop
             for j in N - 1 downto 2**i loop
@@ -37,7 +43,7 @@ aux := din;
             end loop;
         end loop;
     else
-        -- Corrimiento a la DER
+        -- Right shift
         for i in 0 to SHBITS - 1 loop
             for j in 0 to N - 2**i - 1 loop
                 if shamt(i) = '0' then

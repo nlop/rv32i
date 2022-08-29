@@ -13,7 +13,7 @@ entity MuxGeneric93 is
              din : in std_logic_vector((2**PORTS * N) - 1 downto 0));
 end MuxGeneric93;
 architecture Behavioral of MuxGeneric93 is
-    type MuxIn is array(0 to 15) of STD_LOGIC_VECTOR(15 downto 0);
+    type MuxIn is array(0 to 2**PORTS - 1) of STD_LOGIC_VECTOR(N - 1 downto 0);
     signal muxdata : MuxIn;
 begin
     muxi: for i in 0 to (2**PORTS - 1) generate

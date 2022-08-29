@@ -1,41 +1,54 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity RegisterFileTest is
---  Port ( );
+    generic (
+                N : integer := 32;
+                NLOG2 : integer := 5;
+                NREG : integer := 5;
+                NSHIFT : integer := 5);
 end RegisterFileTest;
 
 architecture Behavioral of RegisterFileTest is
 
     component RegisterFile is
-    Generic( 
-    N : integer := 16;
-    REGBUS : integer := 4;
-    SHBITS : integer := 4);
-    Port ( writeData : in STD_LOGIC_VECTOR (N - 1 downto 0);
-           writeReg, readReg1, readReg2 : in STD_LOGIC_VECTOR (REGBUS - 1 downto 0);
-           shamt : in STD_LOGIC_VECTOR(SHBITS - 1 downto 0);
-           CLK, CLR, SHE, DIR, WR : in STD_LOGIC;
-           readData1, readData2 : out STD_LOGIC_VECTOR (N - 1 downto 0));
+        generic( 
+                   N : integer := 16;
+                   NLOG2 : integer := 4;
+                   NREG : integer := 4;
+                   NSHIFT : integer := 4);
+
+        port ( WD3 : in std_logic_vector (N - 1 downto 0);
+        A3, A1, A2 : in std_logic_vector (NREG - 1 downto 0);
+        shamt : in std_logic_vector(NSHIFT - 1 downto 0);
+        CLK, CLR, SHE, DIR, WE3 : in std_logic;
+        RD1, RD2 : out std_logic_vector (N - 1 downto 0));
     end component;
-signal writeData,readData1, readData2 : STD_LOGIC_VECTOR(15 downto 0);
-signal writeReg, readReg1, readReg2, shamt : STD_LOGIC_VECTOR(3 downto 0);
-signal CLK, CLR, SHE, DIR, WR : STD_LOGIC;
+    signal WD3,RD1, RD2 : std_logic_vector(N - 1 downto 0);
+    signal A3, A1, A2, shamt : std_logic_vector(NREG - 1 downto 0);
+    signal CLK, CLR, SHE, DIR, WE3 : std_logic;
 
 begin
-rf : RegisterFile port map(
-    writeData => writeData,
-    writeReg => writeReg,
-    readReg1 => readReg1,
-    readReg2 => readReg2,
-    shamt => shamt,
-    CLK => CLK,
-    CLR => CLR,
-    DIR => DIR,
-    SHE => SHE,
-    WR => WR,
-    readData1 => readData1,
-    readData2 => readData2);
+    rf : RegisterFile 
+    generic map (
+                    N => N,
+                    NLOG2 => NLOG2,
+                    NREG => NREG,
+                    NSHIFT => NSHIFT)
+    port map(
+                WD3 => WD3,
+                A3 => A3,
+                A1 => A1,
+                A2 => A2,
+                shamt => shamt,
+                CLK => CLK,
+                CLR => CLR,
+                DIR => DIR,
+                SHE => SHE,
+                WE3 => WE3,
+                RD1 => RD1,
+                RD2 => RD2);
 -- Señal CLK
 process begin
     CLK <= '0';
@@ -46,39 +59,46 @@ end process;
 -- Pruebas con archivos
 process begin		
     CLR <= '1';
-    WR <= '0';
+    WE3 <= '0';
     DIR <= '0';
     SHE <= '0';
-    writeData <= (others => '0');
-    readReg1 <= (others => '0');
-    readReg2 <= (others => '0');
-    writeReg <= (others => '0');
+    WD3 <= (others => '0');
+    A1 <= (others => '0');
+    A2 <= (others => '0');
+    A3 <= (others => '0');
     shamt <= (others => '0');
     wait until rising_edge(CLK);
     CLR <= '0';
-    writeReg <= x"1";
-    WR <= '1';
-    writeData <= x"1111";
+    A3 <= "0" & x"1";
+    WE3 <= '1';
+    WD3 <= x"00001111";
     wait until rising_edge(CLK);
-    WR <= '0';
+    A3 <= "0" & x"2";
+    WD3 <= x"00002222";
     wait until rising_edge(CLK);
-    WR <= '1';
-    writeReg <= x"2";
-    writeData <= x"2222";
+    A3 <= "0" & x"3";
+    WD3 <= x"00003333";
     wait until rising_edge(CLK);
-    WR <= '0';
+    WE3 <= '0';
+    A1 <= "0" & x"1";
+    A2 <= "0" & x"2";
     wait until rising_edge(CLK);
-    WR <= '1';
-    writeReg <= x"3";
-    writeData <= x"3333";
+    A1 <= "0" & x"3";
     wait until rising_edge(CLK);
-    WR <= '0';
-    readReg1 <= x"1";
-    readReg2 <= x"2";
+    A3 <= "0" & x"4";
+    A2 <= "0" & x"4";
+    SHE <= '1';
+    WE3 <= '1';
+    shamt <= "0" & x"4";
     wait until rising_edge(CLK);
-    readReg1 <= x"3";
+    A3 <= "0" & x"5";
+    A1 <= "0" & x"1";
+    DIR <= '1';
+    WE3 <= '1';
     wait until rising_edge(CLK);
-    WR <= '0';
+    A1 <= "0" & x"5";
+    SHE <= '0';
+    WE3 <= '0';
     wait;
 end process;
 end Behavioral;

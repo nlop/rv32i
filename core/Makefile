@@ -9,4 +9,7 @@ testbench:
 	ghdl -a RegisterFileTest.vhd
 	ghdl -e RegisterFileTest
 
+clean:
+	rm *.o registerfile registerfiletest *.cf
+
 
