@@ -71,3 +71,8 @@ xvlog.*
 
 ## checkpoint files
 *.dcp
+
+## GHDL
+*.o
+*.ghw
+*.cf
