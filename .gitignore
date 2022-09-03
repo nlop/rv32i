@@ -76,3 +76,5 @@ xvlog.*
 *.o
 *.ghw
 *.cf
+*.gtkw
+build/
