@@ -2,7 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
--- Generic 2^K * N random access memory with address bus of M bits
+-- Generic 2^K * N random access memory with address bus of M bits. Supports 
+-- addressing modes by word, half-word and byte.
 entity RAM is       
     generic (
                 N : integer := 32;
@@ -25,9 +26,12 @@ architecture Behavioral of RAM is
     type WDA_Array is array (0 to N/B - 1) of Byte;
 
     signal data : RamBank;
-    signal RDA_full, RDA_half, RDA_byte : std_logic_vector(N - 1 downto 0);
-    signal Z_half : std_logic_vector(N/2 - 1 downto 0);
-    signal Z_byte : std_logic_vector(N - B - 1 downto 0);
+    signal RDA_full : std_logic_vector(N - 1 downto 0);
+    signal Z_half, RDA_half: std_logic_vector(N/2 - 1 downto 0);
+    signal Z_byte: std_logic_vector(N - B - 1 downto 0);
+    signal RDA_byte : std_logic_vector(B - 1 downto 0);
+    signal Sign_half : std_logic_vector(N/2 - 1 downto 0);
+    signal Sign_byte : std_logic_vector(N - B - 1 downto 0);
     signal WDA_a : WDA_Array; 
 
 begin
@@ -35,6 +39,10 @@ begin
     Z_half <= (others => '0');
     Z_byte <= (others => '0');
 
+    -- Sign extensions
+    Sign_half <= (others => RDA_full(N - 1));
+    Sign_byte <= (others => RDA_full(N - 1));
+    
     -- Map write buses
     wda: for i in 0 to N/B - 1 generate
         WDA_a(i) <=  WD(B*i + B - 1 downto B*i);
@@ -45,31 +53,33 @@ begin
                 & data(to_integer(unsigned(A) + 1)) 
                 & data(to_integer(unsigned(A) + 2)) 
                 & data(to_integer(unsigned(A) + 3));
-    RDA_half <= Z_half & RDA_full(N - 1 downto N - N/2);
-    RDA_byte <= Z_byte & RDA_full(N - 1 downto N - B);
+    RDA_half(N/2 - 1 downto 0) <= RDA_full(N - 1 downto N - N/2);
+    RDA_byte(B - 1 downto 0) <= RDA_full(N - 1 downto N - B);
 
     -- RD mux
     rdmux: with fun select
-        RD <= RDA_half when "001",
-              RDA_byte when "000",
+        RD <= Sign_half & RDA_half when "001",
+              Sign_byte & RDA_byte when "000",
+              Z_half & RDA_half when "101",
+              Z_byte & RDA_byte when "100",
               RDA_full when others;
 
-process (CLK, WE) begin
-    if(rising_edge(CLK)) then
-        if(WE = '1') then
-            case fun is
-                when "001" => 
-                    for i in 0 to (N/(2*B) - 1) loop
-                        data(to_integer(unsigned(A) + i)) <=  WDA_a(i);
-                    end loop;
-                when "000" => 
-                    data(to_integer(unsigned(A))) <= WDA_a(0);       
-                when others =>
-                    for i in 0 to N/B - 1 loop
-                        data(to_integer(unsigned(A) + i)) <=  WDA_a(i);
-                    end loop;
-            end case;
+    process (CLK, WE) begin
+        if(rising_edge(CLK)) then
+            if(WE = '1') then
+                case fun is
+                    when "001" => 
+                        for i in 0 to (N/(2*B) - 1) loop
+                            data(to_integer(unsigned(A) + i)) <=  WDA_a(i);
+                        end loop;
+                    when "000" => 
+                        data(to_integer(unsigned(A))) <= WDA_a(0);       
+                    when others =>
+                        for i in 0 to N/B - 1 loop
+                            data(to_integer(unsigned(A) + i)) <=  WDA_a(i);
+                        end loop;
+                end case;
+            end if;
         end if;
-    end if;
-end process;
+    end process;
 end Behavioral;
