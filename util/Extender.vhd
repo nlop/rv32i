@@ -15,16 +15,14 @@ architecture Behavioral of Extender is
     signal src_I, src_S, src_B : std_logic_vector(N - 1 downto 0);
 begin
     -- Sign extension
-    genext: for i in 0 to (N - IMM_LEN - 1) generate
-        sign(i) <= INST(N - 1);
-    end generate;
+    sign <= (others => INST(N - 1));
 
     -- Type I : 12bit signed (00)
    src_I <= sign & INST(31 downto 20);
     -- Type S : 12bit signed (01)
    src_S <= sign & INST(31 downto 25) & INST(11 downto 7);
     -- Type B : 13bit signed (10)
-   src_B <= sign & INST(7) & INST(30 downto 25) & INST(11 downto 8);
+   src_B <= sign & INST(7) & INST(30 downto 25) & INST(11 downto 8) & '0';
 
    -- Src mux
    srcmux: with SRC select
