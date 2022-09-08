@@ -18,7 +18,6 @@ entity RAM is
 end RAM;
 
 architecture Behavioral of RAM is
-
     constant B : integer := 8;
     subtype Byte is std_logic_vector(B - 1 downto 0);
     type RamBank is array (0 to (2**(K + 2) - 1)) of Byte;
@@ -26,35 +25,39 @@ architecture Behavioral of RAM is
     type WDA_Array is array (0 to N/B - 1) of Byte;
 
     signal data : RamBank;
+    signal A_K : std_logic_vector(N - 1 downto 0);
     signal RDA_full : std_logic_vector(N - 1 downto 0);
-    signal Z_half, RDA_half: std_logic_vector(N/2 - 1 downto 0);
-    signal Z_byte: std_logic_vector(N - B - 1 downto 0);
+    signal RDA_half: std_logic_vector(N/2 - 1 downto 0);
     signal RDA_byte : std_logic_vector(B - 1 downto 0);
+    signal Z_half : std_logic_vector(N/2 - 1 downto 0);
+    signal Z_byte: std_logic_vector(N - B - 1 downto 0);
     signal Sign_half : std_logic_vector(N/2 - 1 downto 0);
     signal Sign_byte : std_logic_vector(N - B - 1 downto 0);
     signal WDA_a : WDA_Array; 
 
 begin
+    -- Shorten addr
+    A_K <= (x"00000" & x"FFF") and A;
     -- Zeros
     Z_half <= (others => '0');
     Z_byte <= (others => '0');
 
     -- Sign extensions
-    Sign_half <= (others => RDA_full(N - 1));
-    Sign_byte <= (others => RDA_full(N - 1));
+    Sign_half <= (others => RDA_half(N - N/2 - 1));
+    Sign_byte <= (others => RDA_byte(B - 1));
     
-    -- Map write buses
+    -- Split write bus
     wda: for i in 0 to N/B - 1 generate
         WDA_a(i) <=  WD(B*i + B - 1 downto B*i);
     end generate;
 
     -- Read buses
-    RDA_full <= data(to_integer(unsigned(A))) 
-                & data(to_integer(unsigned(A) + 1)) 
-                & data(to_integer(unsigned(A) + 2)) 
-                & data(to_integer(unsigned(A) + 3));
-    RDA_half(N/2 - 1 downto 0) <= RDA_full(N - 1 downto N - N/2);
-    RDA_byte(B - 1 downto 0) <= RDA_full(N - 1 downto N - B);
+    RDA_full <= data(to_integer(unsigned(A_K) + 3)) 
+                & data(to_integer(unsigned(A_K) + 2)) 
+                & data(to_integer(unsigned(A_K) + 1)) 
+                & data(to_integer(unsigned(A_K)));
+    RDA_half(N/2 - 1 downto 0) <= RDA_full(N - N/2 - 1 downto 0);
+    RDA_byte(B - 1 downto 0) <= RDA_full(B - 1 downto 0);
 
     -- RD mux
     rdmux: with fun select
@@ -70,13 +73,13 @@ begin
                 case fun is
                     when "001" => 
                         for i in 0 to (N/(2*B) - 1) loop
-                            data(to_integer(unsigned(A) + i)) <=  WDA_a(i);
+                            data(to_integer(unsigned(A_K) + i)) <=  WDA_a(i);
                         end loop;
                     when "000" => 
-                        data(to_integer(unsigned(A))) <= WDA_a(0);       
+                        data(to_integer(unsigned(A_K))) <= WDA_a(0);       
                     when others =>
                         for i in 0 to N/B - 1 loop
-                            data(to_integer(unsigned(A) + i)) <=  WDA_a(i);
+                            data(to_integer(unsigned(A_K) + i)) <=  WDA_a(i);
                         end loop;
                 end case;
             end if;
