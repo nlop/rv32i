@@ -2,12 +2,18 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_signed.all;
 
+-- Program counter
+--
+-- Parameters:
+--      N: word size
 entity PC is
     generic (N : integer := 32);
     port (
              PCOUT : out std_logic_vector(N - 1 downto 0);
              WPC : in std_logic_vector(N - 1 downto 0);
-    CLK, CLR, JEN, JINST : in std_logic);
+    CLK, CLR, BRE, BR : in std_logic);
+    --        ^ branch enable
+    --             ^ branch instruction
 end PC;
 
 architecture Behavioral of PC is
@@ -25,7 +31,7 @@ process (CLK, CLR) begin
         end if;
     end if;
 end process;
-JMP <= JEN and JINST;
+JMP <= BRE and BR;
 PCOUT <= Q;
 
 end Behavioral;
