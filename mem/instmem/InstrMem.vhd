@@ -22,126 +22,89 @@ architecture Behavioral of InstrMem is
     -- Tipo de dato memoria de programa
     type InstrMemArr is array (0 to (2**K - 1)) of std_logic_vector(N - 1 downto 0);
 -- Constantes del programa
--- constant CONST_MEM_ADDR : STD_LOGIC_VECTOR(11 downto 0) := CONV_STD_LOGIC_VECTOR(MEM_ADDR, 12);
 --    Instrucciones
--- constant TIPO_R : STD_LOGIC_VECTOR(4 downto 0) := "00000";
--- constant ADD : STD_LOGIC_VECTOR(3 downto 0) := x"0";
--- constant SRLL : STD_LOGIC_VECTOR(3 downto 0) := x"a";
--- constant SUB : STD_LOGIC_VECTOR(3 downto 0) := x"1";
--- constant ADDI : STD_LOGIC_VECTOR(4 downto 0) := "00101";
--- constant SUBI : STD_LOGIC_VECTOR(4 downto 0) := "00110";
--- constant LI : STD_LOGIC_VECTOR(4 downto 0) := "00001";
--- constant LWI : STD_LOGIC_VECTOR(4 downto 0) := "00010";
--- constant LW : STD_LOGIC_VECTOR(4 downto 0) := "10111";
--- constant SW : STD_LOGIC_VECTOR(4 downto 0) := "00100";
--- constant SWI : STD_LOGIC_VECTOR(4 downto 0) := "00011";
--- constant CALL : STD_LOGIC_VECTOR(4 downto 0) := "10100";
--- constant BNEI : STD_LOGIC_VECTOR(4 downto 0) := "01110";
--- constant BEQI : STD_LOGIC_VECTOR(4 downto 0) := "01101";
--- constant BLTI : STD_LOGIC_VECTOR(4 downto 0) := "01111";
--- constant BLETI : STD_LOGIC_VECTOR(4 downto 0) := "10000";
--- constant BGTI : STD_LOGIC_VECTOR(4 downto 0) := "10001";
--- constant BGETI : STD_LOGIC_VECTOR(4 downto 0) := "10010";
--- constant RET : STD_LOGIC_VECTOR(4 downto 0) := "10101";
--- constant B : STD_LOGIC_VECTOR(4 downto 0) := "10011";
--- constant NOP : STD_LOGIC_VECTOR(4 downto 0) := "10110";
--- constant SU : STD_LOGIC_VECTOR(3 downto 0) := x"0";
+    constant I_OP_003 : std_logic_vector(6 downto 0) := "0000011";
+    constant I_OP_019 : std_logic_vector(6 downto 0) := "0010011";
+    constant S_OP_035 : std_logic_vector(6 downto 0) := "0100011";
+    constant R_OP_051 : std_logic_vector(6 downto 0) := "0110011";
+    constant B_OP_099 : std_logic_vector(6 downto 0) := "1100011";
 --   Registros
--- constant R0 : STD_LOGIC_VECTOR(3 downto 0) := x"0";
--- constant R1 : STD_LOGIC_VECTOR(3 downto 0) := x"1";
--- constant R2 : STD_LOGIC_VECTOR(3 downto 0) := x"2";
--- constant R3 : STD_LOGIC_VECTOR(3 downto 0) := x"3";
--- constant R4 : STD_LOGIC_VECTOR(3 downto 0) := x"4";
--- constant R5 : STD_LOGIC_VECTOR(3 downto 0) := x"5";
--- constant R6 : STD_LOGIC_VECTOR(3 downto 0) := x"6";
--- constant R7 : STD_LOGIC_VECTOR(3 downto 0) := x"7";
--- constant R8 : STD_LOGIC_VECTOR(3 downto 0) := x"8";
--- constant R14 : STD_LOGIC_VECTOR(3 downto 0) := x"e";
--- constant R15 : STD_LOGIC_VECTOR(3 downto 0) := x"f";
---   Cadenas del programa
--- constant SLIT_16_00 : STD_LOGIC_VECTOR(15 downto 0) := x"0000";
--- constant SLIT_16_01 : STD_LOGIC_VECTOR(15 downto 0) := x"0001";
--- constant SLIT_16_16 : STD_LOGIC_VECTOR(15 downto 0) := x"0010";
--- constant SLIT_16_23 : STD_LOGIC_VECTOR(15 downto 0) := x"0017";
--- constant SLIT_12_00 : STD_LOGIC_VECTOR(11 downto 0) := x"000";
--- constant SLIT_12_01 : STD_LOGIC_VECTOR(11 downto 0) := x"001";
--- constant FILL : STD_LOGIC_VECTOR(15 downto 0) := x"000e";
--- constant BSORTA : STD_LOGIC_VECTOR(15 downto 0) := x"0014";
--- constant BSORTD : STD_LOGIC_VECTOR(15 downto 0) := x"001f";
--- constant CSHO : STD_LOGIC_VECTOR(15 downto 0) := x"000b";
--- constant SHO : STD_LOGIC_VECTOR(15 downto 0) := x"002e";
--- constant SWP : STD_LOGIC_VECTOR(15 downto 0) := x"0033";
--- constant NP : STD_LOGIC_VECTOR(15 downto 0) := x"000c";
--- constant CSWP : STD_LOGIC_VECTOR(11 downto 0) := x"002";
--- constant ORD : STD_LOGIC_VECTOR(11 downto 0) := x"ff6";
--- constant CMP : STD_LOGIC_VECTOR(11 downto 0) := x"ff9";
--- constant E1 : STD_LOGIC_VECTOR(11 downto 0) := x"ffd";
--- constant E2A : STD_LOGIC_VECTOR(15 downto 0) := x"001d";
--- constant E2D : STD_LOGIC_VECTOR(15 downto 0) := x"002a";
--- constant E3 : STD_LOGIC_VECTOR(11 downto 0) := x"ffe";
--- constant CBSORT : STD_LOGIC_VECTOR(11 downto 0) := x"003";
+    constant ZERO : std_logic_vector(4 downto 0) := (others => '0');
+    constant RA : std_logic_vector(4 downto 0) := "00001";
+    constant SP : std_logic_vector(4 downto 0) := "00010";
+    constant GP : std_logic_vector(4 downto 0) := "00011";
+    constant TP : std_logic_vector(4 downto 0) := "00100";
+    constant T0 : std_logic_vector(4 downto 0) := "00101";
+    constant T1 : std_logic_vector(4 downto 0) := "00110";
+    constant T2 : std_logic_vector(4 downto 0) := "00111";
+    constant FP : std_logic_vector(4 downto 0) := "01000";
+    constant S1 : std_logic_vector(4 downto 0) := "01001";
+    constant A0 : std_logic_vector(4 downto 0) := "01010";
+    constant A1 : std_logic_vector(4 downto 0) := "01011";
+    constant A2 : std_logic_vector(4 downto 0) := "01100";
+    constant A3 : std_logic_vector(4 downto 0) := "01101";
+    constant A4 : std_logic_vector(4 downto 0) := "01110";
+    constant A5 : std_logic_vector(4 downto 0) := "01111";
+    constant A6 : std_logic_vector(4 downto 0) := "10000";
+    constant A7 : std_logic_vector(4 downto 0) := "10001";
+    constant S2 : std_logic_vector(4 downto 0) := "10010";
+    constant S3 : std_logic_vector(4 downto 0) := "10011";
+    constant S4 : std_logic_vector(4 downto 0) := "10100";
+    constant S5 : std_logic_vector(4 downto 0) := "10101";
+    constant S6 : std_logic_vector(4 downto 0) := "10110";
+    constant S7 : std_logic_vector(4 downto 0) := "10111";
+    constant S8 : std_logic_vector(4 downto 0) := "11000";
+    constant S9 : std_logic_vector(4 downto 0) := "11001";
+    constant S10 : std_logic_vector(4 downto 0) := "11010";
+    constant S11 : std_logic_vector(4 downto 0) := "11011";
+    constant T3 : std_logic_vector(4 downto 0) := "11100";
+    constant T4 : std_logic_vector(4 downto 0) := "11101";
+    constant T5 : std_logic_vector(4 downto 0) := "11110";
+    constant T6 : std_logic_vector(4 downto 0) := "11111";
+    --  Function codes
+    constant F7_ZERO : std_logic_vector(6 downto 0) := (others => '0');
+    constant F7_ONE : std_logic_vector(6 downto 0) := "0100000";
+    constant F3_HALF : std_logic_vector(2 downto 0) := "001";
+    constant F3_BYTE : std_logic_vector(2 downto 0) := "000";
+    constant F3_WORD : std_logic_vector(2 downto 0) := "010";
+    constant F3_ADD : std_logic_vector(2 downto 0) := "000";
+    constant F3_NE : std_logic_vector(2 downto 0) := "001";
+    constant F3_SL : std_logic_vector(2 downto 0) := "001";
+    constant F3_SR : std_logic_vector(2 downto 0) := "101";
+    -- Immediate strings
+    constant IMM_0x001 : std_logic_vector(11 downto 0) := x"001";
+    constant IMM_0x002 : std_logic_vector(11 downto 0) := x"002";
+    constant IMM_0x006 : std_logic_vector(11 downto 0) := x"006";
+    constant IMM_0x008 : std_logic_vector(11 downto 0) := x"008";
+    constant IMM_0x700 : std_logic_vector(11 downto 0) := x"700";
+    constant IMM_0xfff : std_logic_vector(11 downto 0) := x"fff";
+    constant IMM_H_008 : std_logic_vector(6 downto 0) := "0000000";
+    constant IMM_L_008 : std_logic_vector(4 downto 0) := "01000";
+    constant IMM_12_N2 : std_logic := '1';
+    constant IMM_11_N2 : std_logic := '1';
+    constant IMM_H_N2 : std_logic_vector(5 downto 0) := "111111";
+    constant IMM_L_N2 : std_logic_vector(3 downto 0):= "1111";
+    -- NOP
+    constant NOP : std_logic_vector(31 downto 0) := F7_ZERO & ZERO & ZERO & F3_ADD & ZERO & R_OP_051;
 constant data : InstrMemArr := (
--- BubbleSort v0.2
-    -- LI     & R0  & CONV_STD_LOGIC_VECTOR(INI, 16), --- 00 MAIN
-    -- LI     & R1  & CONV_STD_LOGIC_VECTOR(N, 16),   --- 01
-    -- SUBI   & R6  & R1 & SLIT_12_01,     --- 02
-    -- LI     & R2  & CONV_STD_LOGIC_VECTOR(STEP, 16), --- 03
-    -- LI     & R7  & CONV_STD_LOGIC_VECTOR(DIR, 16),  --- 04
-    -- LI     & R8  & SLIT_16_00,          --- 05
-    -- CALL   & SU  & FILL,                --- 06
-    -- BEQI   & R7  & R8 & CBSORT,         --- 07
-    -- CALL   & SU  & BSORTD,              --- 08
-    -- B      & SU  & CSHO,                --- 09
-    -- CALL   & SU  & BSORTA,              --- 10 CBSORT
-    -- CALL   & SU  & SHO,                 --- 11 CSHO
-    -- NOP    & SU  & SU & SU & SU & SU,   --- 12 NP
-    -- B      & SU  & NP,                  --- 13
-    -- LI     & R3  & SLIT_16_00,          --- 14 FILL
-    -- SW     & R0  & R3  & CONST_MEM_ADDR,--- 15 E1
-    -- ADDI   & R3  & R3  & SLIT_12_01,    --- 16
-    -- TIPO_R & R0  & R0  & R2 & SU & SUB, --- 17
-    -- BNEI   & R1  & R3  & E1,            --- 18
-    -- RET    & SU  & SU  & SU & SU & SU,  --- 19  
-    -- LI     & R15 & SLIT_16_00,          --- 20 BSORTA 
-    -- LI     & R0  & SLIT_16_00,          --- 21 ORD
-    -- LI     & R14 & SLIT_16_00,          --- 22
-    -- LW     & R3  & R0  & CONST_MEM_ADDR,--- 23 CMP
-    -- ADDI   & R5  & R0  & SLIT_12_01,    --- 24
-    -- LW     & R4  & R5  & CONST_MEM_ADDR,--- 25
-    -- BGTI   & R4  & R3  & CSWP,          --- 26
-    -- B      & SU  & E2A,                 --- 27
-    -- CALL   & SU & SWP,                  --- 28 CSWP
-    -- ADDI   & R0  & R5  & SLIT_12_00,    --- 29 E2A
-    -- BNEI   & R0  & R6  & CMP,           --- 30 
-    -- BNEI   & R15 & R14 & ORD,           --- 31
-    -- RET    & SU  & SU  & SU & SU & SU,  --- 32  
-    -- LI     & R15 & SLIT_16_00,          --- 33 BSORTD 
-    -- LI     & R0  & SLIT_16_00,          --- 34 ORD
-    -- LI     & R14 & SLIT_16_00,          --- 35
-    -- LW     & R3  & R0  & CONST_MEM_ADDR,--- 36 CMP
-    -- ADDI   & R5  & R0  & SLIT_12_01,    --- 37
-    -- LW     & R4  & R5  & CONST_MEM_ADDR,--- 38
-    -- BLTI   & R4  & R3  & CSWP,          --- 39
-    -- B      & SU  & E2D,                 --- 40
-    -- CALL   & SU & SWP,                  --- 41 CSWP
-    -- ADDI   & R0  & R5  & SLIT_12_00,    --- 42 E2D
-    -- BNEI   & R0  & R6  & CMP,           --- 43 
-    -- BNEI   & R15 & R14 & ORD,           --- 44
-    -- RET    & SU  & SU  & SU & SU & SU,  --- 45  
-    -- LI     & R0  & SLIT_16_00,          --- 46 SHO
-    -- LW     & R2  & R0  & CONST_MEM_ADDR,--- 47 E3
-    -- ADDI   & R0  & R0  & SLIT_12_01,    --- 48
-    -- BNEI   & R0  & R1 & E3,             --- 49
-    -- RET    & SU  & SU  & SU & SU & SU,  --- 50  
-    -- LI     & R14 & SLIT_16_01,          --- 51 SWP
-    -- SW     & R3  & R5  & CONST_MEM_ADDR,--- 52 
-    -- SW     & R4  & R0  & CONST_MEM_ADDR,--- 53
-    -- RET    & SU  & SU  & SU & SU & SU,  --- 54
-    -- others => (NOP & SU & SU & SU & SU & SU)
-    (others => '0'),
-    x"11111111",
-    x"22222222",
-    others => (others => '0')
+
+    IMM_0x006 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0x006
+    IMM_0x001 & ZERO & F3_ADD & T3 & I_OP_019, -- addi t3, zero, 0x001
+    IMM_0x700 & ZERO & F3_ADD & T1 & I_OP_019, -- addi t1, zero, 0x700 
+    IMM_0x002 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
+    F7_ONE & T3 & T0 & F3_ADD & T0 & R_OP_051, -- sub t0, t0, t3
+    F7_ZERO & T2 & T1 & F3_ADD & T1 & R_OP_051, -- add t1, t1, t2
+    IMM_12_N2 & IMM_H_N2 & T0 & ZERO & F3_NE & IMM_L_N2 & IMM_11_N2 & B_OP_099, -- blt t2, zero, -2
+    IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
+    IMM_0x008 & ZERO & F3_WORD & T0 & I_OP_003, -- lw t0, 0x008(zero)
+    NOP,
+    NOP,
+    IMM_0xfff & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0xfff
+    IMM_0x008 & T0 & F3_SL & T1 & I_OP_019, -- slli t1, t0, 0x08
+    IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
+    IMM_0x008 & T0 & F3_SR & T1 & I_OP_019, -- srli t1, t0, 0x08
+    IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
+    others => NOP
     );
 begin
     RD <= data(to_integer(unsigned(A)));
