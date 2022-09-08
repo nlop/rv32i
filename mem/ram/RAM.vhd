@@ -37,7 +37,7 @@ architecture Behavioral of RAM is
 
 begin
     -- Shorten addr
-    A_K <= (x"00000" & x"FFF") and A;
+    A_K <= (x"00000" & x"7FF") and A;
     -- Zeros
     Z_half <= (others => '0');
     Z_byte <= (others => '0');
