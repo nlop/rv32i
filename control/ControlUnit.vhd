@@ -10,7 +10,7 @@ entity ControlUnit is
              wRamEn : out std_logic;
              resSrc : out std_logic;
              extSrc : out std_logic_vector(1 downto 0);
-             jinst : out std_logic);
+             BR : out std_logic);
 end ControlUnit;
 
 architecture Behavioral of ControlUnit is
@@ -27,7 +27,7 @@ ctl: process (op) begin
             wRamEn <= '0';
             resSrc <= '0';
             extSrc <= "00";
-            jinst <= '0';
+            BR <= '0';
         -- Type I op 0x19
         when "0010011" =>
             aluOP <= "10";  
@@ -36,7 +36,7 @@ ctl: process (op) begin
             wRamEn <= '0';
             resSrc <= '1';
             extSrc <= "00";
-            jinst <= '0';
+            BR <= '0';
         -- Type S op 0x35
         when "0100011" =>
             aluOP <= "00";  
@@ -44,17 +44,26 @@ ctl: process (op) begin
             WE3En <= '0';
             wRamEn <= '1';
             resSrc <= '0';
-            extSrc <= "00";
-            jinst <= '0';
-        -- Type S op 0x51
+            extSrc <= "01";
+            BR <= '0';
+        -- Type R op 0x51
         when "0110011" =>
-            aluOP <= "10";  
+            aluOP <= "11";  
             srcB <= '1';
             WE3En <= '1';
             wRamEn <= '0';
             resSrc <= '1';
             extSrc <= "00";
-            jinst <= '0';
+            BR <= '0';
+        -- Type B op 0x99
+        when "1100011" =>
+            aluOP <= "01";  
+            srcB <= '1';
+            WE3En <= '0';
+            wRamEn <= '0';
+            resSrc <= '1';
+            extSrc <= "10";
+            BR <= '1';
         when others => 
             aluOP <= "00";  
             srcB <= '0';
@@ -62,16 +71,7 @@ ctl: process (op) begin
             wRamEn <= '0';
             resSrc <= '0';
             extSrc <= "00";
-            jinst <= '0';
+            BR <= '0';
     end case;
-                  -- Type B op 0x99
-                  --when "1100011" =>
-                  --    aluOP <= "01";  
-                  --    srcB <= '1';
-                  --    WE3En <= '0';
-                  --    wRamEn <= '0';
-                  --    resSrc <= '1';
-                  --    extSrc <= "";
-                  --    jinst <= '0';
-        end process;
+end process;
     end Behavioral;
