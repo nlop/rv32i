@@ -4,24 +4,47 @@ use IEEE.STD_LOGIC_1164.ALL;
 use work.ALUPackage.ALL;
 
 entity ALUNbits is
-    generic (N : integer := 4);
-    port ( a, b : in std_logic_vector (n - 1 downto 0);
+    generic (N : integer := 4;
+            LOG2N : integer := 2);
+    port ( A, B : in std_logic_vector (n - 1 downto 0);
            aluOP : in std_logic_vector (1 downto 0);
            funct3 : in std_logic_vector (2 downto 0);
            funct7 : in std_logic;
-           s : out std_logic_vector (n - 1 downto 0);
+           S : out std_logic_vector (n - 1 downto 0);
     flg_ov, flg_n, flg_z, flg_c : out std_logic);
 end ALUNbits;
 
 architecture Behavioral of ALUNbits is
 
+
+    component BarrelShifter is
+    generic ( 
+        N : integer := 16;
+        SHBITS : integer := 4 );
+    port ( din : in std_logic_vector (N - 1 downto 0);
+           dout : out std_logic_vector (N - 1 downto 0);
+           shamt : in std_logic_vector (SHBITS - 1 downto 0);
+           DIR : in std_logic);
+    end component;
+
     signal op, sel : std_logic_vector (1 downto 0);
     signal c : std_logic_vector(n downto 0);
     signal s_aux : std_logic_vector(n - 1 downto 0);
+    signal srcS : std_logic;
+    -- Barrel shifter
+    signal barrelOut : std_logic_vector(N - 1 downto 0);
+    signal shDir : std_logic;
 
 begin
+    -- Carry
     c(0) <= sel(0);
-    s <= s_aux;
+    -- srcS mux
+    with funct3 select
+        srcS <= '1' when "001" | "101",
+                '0' when others;
+    -- S output mux
+    s <= barrelOut when srcS = '1' else s_aux;
+    -- Generate ALU units
     ciclo : for i in 0 to N - 1 generate
         alun : ALUBit port map(
                                   a => a(i),
@@ -32,6 +55,18 @@ begin
                                   s => s_aux(i),
                                   cout => c(i + 1));
     end generate;
+    -- Barrel shifter
+    bs: BarrelShifter generic map (
+        N => N,
+        SHBITS => LOG2N)
+    port map (
+        din => A,
+        dout => barrelOut,
+        shamt => B(LOG2N - 1 downto 0),
+        DIR => shDir);
+    -- Shift direction
+    -- shDir = 0 >>, shDir = 1 <<
+    shDir <= not funct3(2);
     -- ALU control
     ctl: process(aluOP, funct3, funct7) begin
         case aluOP is
@@ -43,16 +78,16 @@ begin
                 op <= "11";
             when "10" => -- I, op=19; 
                 case funct3 is
-                    when "000" => -- add/sub
+                    when "000" => -- addi/subi
                         op <= "11";
                         sel <= "00"; 
-                    when "100" => -- xor
+                    when "100" => -- xori
                         op <= "10";
                         sel <= "00";
-                    when "110" => -- or
+                    when "110" => -- ori
                         op <= "01";
                         sel <= "00";
-                    when others => -- and
+                    when others => -- andi
                         op <= "00";
                         sel <= "00";
                 end case;

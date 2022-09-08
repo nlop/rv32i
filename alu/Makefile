@@ -11,10 +11,10 @@ GHDLRUNFLAGS=--wave=testbench.ghw --stop-time=5us
 all: alunbits
 
 # Elaboration target
-testbench: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o ALUPackage.o Testbench.o ALUNbits.o ALUBit.o sumaBit.o
+testbench: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o Testbench.o alunbits
 	$(GHDL) -e $(GHDLFLAGS) $@
 
-alunbits: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o ALUPackage.o ALUNbits.o ALUBit.o sumaBit.o
+alunbits: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o ALUPackage.o ALUNbits.o ALUBit.o sumaBit.o BarrelShifter.o
 	$(GHDL) -e $(GHDLFLAGS) $@
 
 # Run target
@@ -36,6 +36,8 @@ ALUNbits.o: ALUNbits.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 ALUBit.o: ALUBit.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
+BarrelShifter.o: BarrelShifter.vhd
+	$(GHDL) -a $(GHDLFLAGS) $<
 sumaBit.o: sumaBit.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 
@@ -49,4 +51,4 @@ ALUBit.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o ALUPackage.o
 sumaBit.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 
 clean:
-	rm -f *.o alunbits testbench *.cf
+	rm -f *.o alunbits testbench *.cf *.ghw
