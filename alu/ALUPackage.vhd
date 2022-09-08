@@ -15,10 +15,12 @@ component ALUBit is
 end component;
 -- ALU N bits
 component ALUNbits is
-    generic ( N : integer := 4);
-    Port ( a,b : in STD_LOGIC_VECTOR (N - 1 downto 0);
-           op,sel : in STD_LOGIC_VECTOR (1 downto 0);
-           s : out STD_LOGIC_VECTOR (N - 1 downto 0);
-           flg_ov, flg_n, flg_z, flg_c : out STD_LOGIC);
+    generic (N : integer := 4);
+    port ( a, b : in std_logic_vector (n - 1 downto 0);
+           aluOP : in std_logic_vector (1 downto 0);
+           funct3 : in std_logic_vector (2 downto 0);
+           funct7 : in std_logic;
+           s : out std_logic_vector (n - 1 downto 0);
+    flg_ov, flg_n, flg_z, flg_c : out std_logic);
 end component;
 end package;
