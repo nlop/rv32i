@@ -11,10 +11,10 @@ GHDLRUNFLAGS=--wave=testbench.ghw --stop-time=5us
 all: registerfile
 
 # Elaboration target
-registerfile: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o RegisterFile.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o DemuxGeneric93.o BarrelShifter.o MuxGeneric93.o SimpleRegister.o
+registerfile: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o RegisterFile.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o DemuxGeneric93.o MuxGeneric93.o SimpleRegister.o
 	$(GHDL) -e $(GHDLFLAGS) $@
 
-registerfiletest: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o RegisterFileTest.o RegisterFile.o DemuxGeneric93.o BarrelShifter.o MuxGeneric93.o SimpleRegister.o
+registerfiletest: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o RegisterFileTest.o RegisterFile.o DemuxGeneric93.o MuxGeneric93.o SimpleRegister.o
 	$(GHDL) -e $(GHDLFLAGS) $@
 
 # Run target
@@ -40,8 +40,6 @@ RegisterFile.o: RegisterFile.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 DemuxGeneric93.o: DemuxGeneric93.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
-BarrelShifter.o: BarrelShifter.vhd
-	$(GHDL) -a $(GHDLFLAGS) $<
 MuxGeneric93.o: MuxGeneric93.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 SimpleRegister.o: SimpleRegister.vhd
@@ -55,7 +53,6 @@ SimpleRegister.o: SimpleRegister.vhd
 RegisterFileTest.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o
 RegisterFile.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 DemuxGeneric93.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/numeric_std.o
-BarrelShifter.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 MuxGeneric93.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/numeric_std.o
 SimpleRegister.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 

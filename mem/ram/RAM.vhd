@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
--- Generic 2^K * N random access memory with address bus of M bits. Supports 
+-- Generic 2^K * N random access memory with an address bus of M bits. Supports 
 -- addressing modes by word, half-word and byte.
 entity RAM is       
     generic (
@@ -25,7 +25,6 @@ architecture Behavioral of RAM is
     type WDA_Array is array (0 to N/B - 1) of Byte;
 
     signal data : RamBank;
-    signal A_K : std_logic_vector(N - 1 downto 0);
     signal RDA_full : std_logic_vector(N - 1 downto 0);
     signal RDA_half: std_logic_vector(N/2 - 1 downto 0);
     signal RDA_byte : std_logic_vector(B - 1 downto 0);
@@ -36,8 +35,6 @@ architecture Behavioral of RAM is
     signal WDA_a : WDA_Array; 
 
 begin
-    -- Shorten addr
-    A_K <= (x"00000" & x"7FF") and A;
     -- Zeros
     Z_half <= (others => '0');
     Z_byte <= (others => '0');
@@ -52,10 +49,10 @@ begin
     end generate;
 
     -- Read buses
-    RDA_full <= data(to_integer(unsigned(A_K) + 3)) 
-                & data(to_integer(unsigned(A_K) + 2)) 
-                & data(to_integer(unsigned(A_K) + 1)) 
-                & data(to_integer(unsigned(A_K)));
+    RDA_full <= data(to_integer(unsigned(A(K - 1 downto 0)) + 3)) 
+                & data(to_integer(unsigned(A(K - 1 downto 0)) + 2)) 
+                & data(to_integer(unsigned(A(K - 1 downto 0)) + 1)) 
+                & data(to_integer(unsigned(A(K - 1 downto 0))));
     RDA_half(N/2 - 1 downto 0) <= RDA_full(N - N/2 - 1 downto 0);
     RDA_byte(B - 1 downto 0) <= RDA_full(B - 1 downto 0);
 
@@ -73,13 +70,13 @@ begin
                 case fun is
                     when "001" => 
                         for i in 0 to (N/(2*B) - 1) loop
-                            data(to_integer(unsigned(A_K) + i)) <=  WDA_a(i);
+                            data(to_integer(unsigned(A(K - 1 downto 0)) + i)) <=  WDA_a(i);
                         end loop;
                     when "000" => 
-                        data(to_integer(unsigned(A_K))) <= WDA_a(0);       
+                        data(to_integer(unsigned(A(K - 1 downto 0)))) <= WDA_a(0);       
                     when others =>
                         for i in 0 to N/B - 1 loop
-                            data(to_integer(unsigned(A_K) + i)) <=  WDA_a(i);
+                            data(to_integer(unsigned(A(K - 1 downto 0)) + i)) <=  WDA_a(i);
                         end loop;
                 end case;
             end if;

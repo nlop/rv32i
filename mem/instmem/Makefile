@@ -4,7 +4,7 @@
 # ghdl --gen-makefile InstrMemTestbench
 
 GHDL=ghdl
-GHDLFLAGS=
+GHDLFLAGS=-fsynopsys
 GHDLRUNFLAGS=--wave=testbench.ghw --stop-time=5us
 
 # Default target

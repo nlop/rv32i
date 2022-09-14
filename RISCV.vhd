@@ -5,26 +5,20 @@ use ieee.std_logic_unsigned.all;
 use work.ALUPackage.all;
 
 entity RISCV is
-    constant P : time := 10 ns;
-    constant N : integer := 32;
-    constant LOG2N : integer := 5;
-    constant M : integer := 5; -- register file 2^M * N
-    constant ROM_ADDRS : integer := 32; -- ROM address space
-    constant K : integer := 10;
-
+    generic(
+               N : integer := 32;
+               LOG2N : integer := 5;
+               M : integer := 5); 
+    port(
+    CLK, CLR : in std_logic;
+    readData, inst : in std_logic_vector(N - 1 downto 0);
+    writeData, aluResult  : out std_logic_vector(N - 1 downto 0);
+    pcout : out std_logic_vector(N - 1 downto 0);
+    funct3 : out std_logic_vector(2 downto 0);
+    wRAM : out std_logic);
 end RISCV;
 
 architecture Behavioral of RISCV is
-    -- Instruction memory (ROM)
-    component InstrMem is
-        generic (
-                    N : integer := 32;
-                    M : integer := 32;  
-                    K : integer := 10
-                );
-        port ( A : in std_logic_vector(ROM_ADDRS - 1 downto 0);
-               RD : out std_logic_vector(N - 1 downto 0));
-    end component;
     -- Generic register file
     component RegisterFile is
         generic( 
@@ -37,23 +31,10 @@ architecture Behavioral of RISCV is
         CLK, CLR, WE3 : in std_logic;
         RD1, RD2 : out std_logic_vector (N - 1 downto 0));
     end component;
-    -- RAM 
-    component RAM is       
-        generic (
-                    N : integer := 32;
-                    K : integer := 10;
-                    M : integer := 32);
-        port (
-                 A : in STD_LOGIC_VECTOR (M - 1 downto 0);
-                 WD : in STD_LOGIC_VECTOR (N - 1 downto 0);
-        WE, CLK : in STD_LOGIC;
-        fun : in std_logic_vector(2 downto 0);
-        RD : out STD_LOGIC_VECTOR (N - 1 downto 0));
-    end component;
     -- Extender
     component Extender is
         port(
-                INST : in std_logic_vector(31 downto 0);
+                inst : in std_logic_vector(31 downto 0);
                 SRC : in std_logic_vector(1 downto 0);
                 EXT : out std_logic_vector(31 downto 0));
     end component;
@@ -65,9 +46,11 @@ architecture Behavioral of RISCV is
                  srcB : out std_logic;
                  WE3En : out std_logic;
                  wRamEn : out std_logic;
-                 resSrc : out std_logic;
+                 resSrc : out std_logic_vector(1 downto 0);
                  extSrc : out std_logic_vector(1 downto 0);
-                 BR : out std_logic);
+                 BR : out std_logic;
+                 JMP : out std_logic;
+                 jmpSrc : out std_logic);
     end component;
     -- Program counter
     component PC is
@@ -75,17 +58,17 @@ architecture Behavioral of RISCV is
         port (
                  PCOUT : out std_logic_vector(N - 1 downto 0);
                  WPC : in std_logic_vector(N - 1 downto 0);
-        CLK, CLR, BRE, BR : in std_logic);
+        CLK, CLR : in std_logic);
     end component;
     -- Conditional checker
     component ConditionChecker is
-    port (
-        BRE : out std_logic;
-        funct3 : in std_logic_vector(2 downto 0);
+        port (
+                 BRE : out std_logic;
+                 funct3 : in std_logic_vector(2 downto 0);
         Z, OV, C, N : in std_logic);
     end component;
     -- === Signals ===
-    signal CLK, CLR, SHE, DIR, WE3 : std_logic;
+    signal WE3 : std_logic;
     signal PCS : std_logic_vector(N - 1 downto 0);
     -- Register file signals
     signal instr : std_logic_vector(N - 1 downto 0);
@@ -96,44 +79,58 @@ architecture Behavioral of RISCV is
     signal aluRes : std_logic_vector(N - 1 downto 0);
     signal flags : std_logic_vector(3 downto 0);
     signal inputB : std_logic_vector(N - 1 downto 0);
-    -- RAM signals
-    signal ramRD : std_logic_vector(N - 1 downto 0);
     -- Extender
     signal immExt : std_logic_vector(N - 1 downto 0);
-    -- PC + 4
+    -- PC aux
+    signal wpcAux : std_logic_vector(N - 1 downto 0);
+    -- PC target (J)
     signal PCtarget : std_logic_vector(N - 1 downto 0);
+    -- PC + imm
+    signal PCimm : std_logic_vector(N - 1 downto 0);
+    -- PC + 4
+    signal PCplus4 : std_logic_vector(N - 1 downto 0);
     -- Control
     signal aluOP : std_logic_vector(1 downto 0);
-    signal wRamEn : std_logic;
     signal extSrc : std_logic_vector(1 downto 0);
     signal srcB : std_logic;
-    signal resSrc : std_logic;
+    signal resSrc : std_logic_vector(1 downto 0);
     signal BR : std_logic;
     signal BRE : std_logic;
+    signal JMP : std_logic;
+    signal wpcSrc : std_logic;
+    signal jmpSrc : std_logic;
 begin
     -- Control unit
-    cu: ControlUnit port map (
-                                 op => instr(6 downto 0),
-                                 aluOP => aluOP,
-                                 srcB => srcB,
-                                 WE3En => WE3,
-                                 wRamEn => wRamEn,
-                                 resSrc => resSrc,
-                                 extSrc => extSrc,
-                                 BR => BR);
-    -- Instruction memory (ROM)
-    rom: InstrMem port map (
-                               A => PCS,
-                               RD => instr);
+    cu: ControlUnit 
+    port map (
+                 op => instr(6 downto 0),
+                 aluOP => aluOP,
+                 srcB => srcB,
+                 WE3En => WE3,
+                 wRamEn => wRAM,
+                 resSrc => resSrc,
+                 extSrc => extSrc,
+                 BR => BR,
+                 JMP => JMP,
+                 jmpSrc => jmpSrc);
     -- PC
     pco: PC generic map (N => N)
     port map(
                 PCOUT => PCS,
-                WPC => PCtarget,
+                WPC => WPCAux,
                 CLK => CLK,
-                CLR => CLR,
-                BR => BR,
-                BRE => BRE);
+                CLR => CLR);
+    -- wpcSrc '1' when: (type B) codition is meet, (type J) instruction is jump
+    -- else, use PC + 4 (PC + 1)
+    wpcSrc <= (BRE and BR) or JMP;
+    -- WPC mux
+    WPCAux <= PCplus4 when wpcSrc = '0' else PCtarget;
+    -- PCtarget mux
+    PCtarget <= result when jmpSrc = '1' else PCimm;
+    -- PC+imm adder
+    PCimm <= PCS + immExt;    
+    -- PC + 1 (PC + 4)
+    PCplus4 <= PCS + 1;
     -- Register file instance
     rf: RegisterFile generic map (
                                      N => N,
@@ -150,7 +147,7 @@ begin
                  RD1 => RD1,
                  RD2 => RD2);
     -- ALU unit
-    alu : ALUNbits generic map (N => N, LOG2N => LOG2N)
+    alu: ALUNbits generic map (N => N, LOG2N => LOG2N)
     port map (
                  A => RD1,
                  B => inputB,
@@ -165,43 +162,30 @@ begin
     -- srcB Mux
     sbmux: inputB <= immExt when srcB = '0' else RD2;
     -- Cond. checker
-    cond: ConditionChecker port map (
-        BRE => BRE,
-        funct3 => instr(14 downto 12),
-        Z => flags(0),
-        OV => flags(3),
-        C => flags(2),
-        N => flags(1));
-    -- RAM
-    ram1: RAM port map (
-                           A => aluRes,
-                           WD => RD2,
-                           WE => wRamEn,
-                           CLK => CLK,
-                           fun => instr(14 downto 12),
-                           RD => ramRD);
+    cond: ConditionChecker 
+    port map (
+                 BRE => BRE,
+                 funct3 => instr(14 downto 12),
+                 Z => flags(0),
+                 OV => flags(3),
+                 C => flags(2),
+                 N => flags(1));
     -- Result mux
-    resmux: result <= ramRD when resSrc = '0' else aluRes;
+    resmux: with resSrc select
+        result <= readData when "00",
+                  PCplus4 when "10",
+                  aluRes when others;
     -- Immediate extender
     ext: Extender port map (
-                               INST => instr,
+                               inst => instr,
                                SRC => extSrc,
                                EXT => immExt);
-   -- PCtarget adder
-    PCtarget <= PCS + immExt;    
-   -- CLK
-   clkp : process begin
-       CLK <= '0';
-       wait for P/2;
-       CLK <= '1';
-       wait for P/2;
-   end process;
-   -- Testbench
-   test : process begin
-       CLR <= '1';
-       wait until rising_edge(CLK);
-       CLR <= '0';
-       wait for P * 4;
-       wait;
-   end process;
+    -- Map output signals
+
+    writeData <= RD2;
+    funct3 <= instr(14 downto 12);
+    aluResult <= aluRes;
+    pcout <= PCS;
+    -- Map input signals
+    instr <= inst;
 end Behavioral;

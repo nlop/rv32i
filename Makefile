@@ -10,15 +10,21 @@ GHDLFLAGS=-fsynopsys
 GHDLRUNFLAGS=--wave=testbench.ghw --stop-time=5us
 
 # Default target
-all: riscv
+all: top
 
-# Elaboration target
-riscv: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o /usr/lib/ghdl/ieee/v93/std_logic_arith.o /usr/lib/ghdl/ieee/v93/std_logic_unsigned.o ALUPackage.o RISCV.o ControlUnit.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o InstrMem.o /usr/lib/ghdl/ieee/v93/std_logic_signed.o PC.o RegisterFile.o ALUNbits.o ConditionChecker.o RAM.o Extender.o DemuxGeneric93.o BarrelShifter.o MuxGeneric93.o SimpleRegister.o ALUBit.o sumaBit.o
+# Elaboration targets
+testbench: top Testbench.o
+	$(GHDL) -e $(GHDLFLAGS) $@
+
+top: riscv Top.o
+	$(GHDL) -e $(GHDLFLAGS) $@
+
+riscv: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o /usr/lib/ghdl/ieee/v93/std_logic_arith.o /usr/lib/ghdl/ieee/v93/std_logic_unsigned.o ALUPackage.o RISCV.o ControlUnit.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o InstrMemProgrammable.o /usr/lib/ghdl/ieee/v93/std_logic_signed.o PC.o RegisterFile.o ALUNbits.o ConditionChecker.o RAM.o Extender.o DemuxGeneric93.o BarrelShifter.o MuxGeneric93.o SimpleRegister.o ALUBit.o sumaBit.o
 	$(GHDL) -e $(GHDLFLAGS) $@
 
 # Run target
-run: riscv
-	$(GHDL) -r riscv $(GHDLRUNFLAGS)
+run: testbench
+	$(GHDL) -r testbench $(GHDLRUNFLAGS)
 
 # Targets to analyze files
 /usr/lib/ghdl/ieee/v93/std_logic_1164.o: /usr/lib/ghdl/ieee/v93/../../src/ieee/v93/std_logic_1164.vhdl
@@ -35,6 +41,10 @@ run: riscv
 	exit 1
 ALUPackage.o: alu/ALUPackage.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
+Testbench.o: Testbench.vhd
+	$(GHDL) -a $(GHDLFLAGS) $<
+Top.o: Top.vhd
+	$(GHDL) -a $(GHDLFLAGS) $<
 RISCV.o: RISCV.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 ControlUnit.o: control/ControlUnit.vhd
@@ -45,7 +55,7 @@ ControlUnit.o: control/ControlUnit.vhd
 /usr/lib/ghdl/ieee/v93/numeric_std-body.o: /usr/lib/ghdl/ieee/v93/../../src/ieee/v93/numeric_std-body.vhdl
 	@echo "This file was not locally built ($<)"
 	exit 1
-InstrMem.o: mem/instmem/InstrMem.vhd
+InstrMemProgrammable.o: mem/instmem/InstrMemProgrammable.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 /usr/lib/ghdl/ieee/v93/std_logic_signed.o: /usr/lib/ghdl/ieee/v93/../../src/synopsys/std_logic_signed.vhdl
 	@echo "This file was not locally built ($<)"
@@ -64,7 +74,7 @@ Extender.o: util/Extender.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 DemuxGeneric93.o: rf/DemuxGeneric93.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
-BarrelShifter.o: rf/BarrelShifter.vhd
+BarrelShifter.o: alu/BarrelShifter.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 MuxGeneric93.o: rf/MuxGeneric93.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
@@ -82,10 +92,12 @@ sumaBit.o: alu/sumaBit.vhd
 /usr/lib/ghdl/ieee/v93/std_logic_unsigned.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_arith.o
 ALUPackage.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 RISCV.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o /usr/lib/ghdl/ieee/v93/std_logic_unsigned.o ALUPackage.o
+Top.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o
+Testbench.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o
 ControlUnit.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 /usr/lib/ghdl/ieee/v93/numeric_std.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 /usr/lib/ghdl/ieee/v93/numeric_std-body.o:  /usr/lib/ghdl/ieee/v93/numeric_std.o
-InstrMem.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o
+InstrMemProgrammable.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o
 /usr/lib/ghdl/ieee/v93/std_logic_signed.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_arith.o
 PC.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_signed.o
 RegisterFile.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
@@ -101,4 +113,4 @@ ALUBit.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o ALUPackage.o
 sumaBit.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 
 clean:
-	rm -f *.o riscv *.cf *.ghw
+	rm -f *.o riscv top testbench *.cf *.ghw

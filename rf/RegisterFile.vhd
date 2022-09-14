@@ -46,10 +46,9 @@ architecture Behavioral of RegisterFile is
                  sel : in std_logic_vector(PORTS - 1 downto 0);
                  din : in std_logic_vector((2**PORTS * N) - 1 downto 0));
     end component;
-
-
     signal lbus, RD1_aux, RD2_aux : std_logic_vector(N - 1 downto 0);
     signal regReadBus : std_logic_vector((2**NREG * N) - 1 downto 0);
+    signal zero : std_logic_vector(N - 1 downto 0);
 
 begin
 -- Demultiplexor
@@ -79,8 +78,18 @@ begin
                  din => regReadBus,
                  sel => A2,
                  dout => RD2_aux);
-    -- SimpleRegisters
-    ciclo : for i in 0 to (2**NREG - 1) generate
+    -- Zero register
+    zero <= (others => '0');
+    zeroreg: SimpleRegister 
+    generic map (N => N)
+    port map(
+        d => zero,
+        q => regReadBus((N * 0 + 2**NREG) - 1 downto (N * 0)),
+        l => lbus(0),
+        clk => CLK,
+        clr => CLR);
+    -- SimpleRegister instances
+    rfloop: for i in 1 to (2**NREG - 1) generate
         regn : SimpleRegister 
         generic map (N => N)
         port map(

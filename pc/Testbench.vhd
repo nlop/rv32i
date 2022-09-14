@@ -12,14 +12,14 @@ architecture Behavioral of Testbench is
         port (
                  PCOUT : out std_logic_vector(N - 1 downto 0);
                  WPC : in std_logic_vector(N - 1 downto 0);
-        CLK, CLR, JEN, JINST : in std_logic);
+        CLK, CLR, BRE, BR : in std_logic);
     end component;
 
     constant P : time := 10 ns;
 
     signal PCO : std_logic_vector(31 downto 0);
     signal WPC : std_logic_vector(31 downto 0);
-    signal CLK, CLR, JEN, JINST : std_logic;
+    signal CLK, CLR, BRE, BR : std_logic;
 
 begin
     pc1: PC port map(
@@ -27,8 +27,8 @@ begin
                         WPC => WPC,
                         CLK => CLK,
                         CLR => CLR,
-                        JEN => JEN,
-                        JINST => JINST);
+                        BRE => BRE,
+                        BR => BR);
 
     clkp: process begin
         CLK <= '0';
@@ -39,20 +39,20 @@ begin
 
 test: process begin
     WPC <= (others => '0'); 
-    JEN <= '0';
-    JINST <= '0';
+    BRE <= '0';
+    BR <= '0';
     CLR <= '1';
     wait until rising_edge(CLK);
     CLR <= '0';
     wait for 40 ns;
-    JINST <= '1';
+    BR <= '1';
     wait until rising_edge(CLK);
     WPC <= x"aaaaaaaa";
-    JEN <= '1';
+    BRE <= '1';
     wait until rising_edge(CLK);
     WPC <= (others => '0');
-    JEN <= '0';
-    JINST <= '0';
+    BRE <= '0';
+    BR <= '0';
     wait for 30 ns;
     wait;
 end process;

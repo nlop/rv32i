@@ -21,11 +21,11 @@ begin
                GEU when "111",
                '0' when others;
     -- Conditionals
-    EQ <= Z;
-    NE <= not Z;
-    LT <= not C ;
-    GE <= C;
-    LTU <= LT;
-    GEU <= GE;
+    EQ <= Z; -- equal
+    NE <= not Z; -- not equal
+    LT <= N xor OV ; -- less than
+    GE <= not LT; -- greater than or equal
+    LTU <= not C; -- less than unsigned
+    GEU <= C; -- greater than or equal unsigned
 end Behavioral;
 

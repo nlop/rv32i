@@ -28,6 +28,8 @@ architecture Behavioral of InstrMem is
     constant S_OP_035 : std_logic_vector(6 downto 0) := "0100011";
     constant R_OP_051 : std_logic_vector(6 downto 0) := "0110011";
     constant B_OP_099 : std_logic_vector(6 downto 0) := "1100011";
+    constant I_OP_103 : std_logic_vector(6 downto 0) := "1100111";
+    constant J_OP_111 : std_logic_vector(6 downto 0) := "1101111";
 --   Registros
     constant ZERO : std_logic_vector(4 downto 0) := (others => '0');
     constant RA : std_logic_vector(4 downto 0) := "00001";
@@ -66,44 +68,55 @@ architecture Behavioral of InstrMem is
     constant F7_ONE : std_logic_vector(6 downto 0) := "0100000";
     constant F3_HALF : std_logic_vector(2 downto 0) := "001";
     constant F3_BYTE : std_logic_vector(2 downto 0) := "000";
+    constant F3_ZERO : std_logic_vector(2 downto 0) := (others => '0');
     constant F3_WORD : std_logic_vector(2 downto 0) := "010";
     constant F3_ADD : std_logic_vector(2 downto 0) := "000";
     constant F3_NE : std_logic_vector(2 downto 0) := "001";
     constant F3_SL : std_logic_vector(2 downto 0) := "001";
     constant F3_SR : std_logic_vector(2 downto 0) := "101";
     -- Immediate strings
+    constant IMM_0x000 : std_logic_vector(11 downto 0) := x"000";
     constant IMM_0x001 : std_logic_vector(11 downto 0) := x"001";
     constant IMM_0x002 : std_logic_vector(11 downto 0) := x"002";
+    constant IMM_0x004 : std_logic_vector(11 downto 0) := x"004";
     constant IMM_0x006 : std_logic_vector(11 downto 0) := x"006";
     constant IMM_0x008 : std_logic_vector(11 downto 0) := x"008";
+    constant IMM_5_0x8 : std_logic_vector(4 downto 0) := "01000";
     constant IMM_0x700 : std_logic_vector(11 downto 0) := x"700";
     constant IMM_0xfff : std_logic_vector(11 downto 0) := x"fff";
+    constant IMM_0x835 : std_logic_vector(11 downto 0) := x"835";
     constant IMM_H_008 : std_logic_vector(6 downto 0) := "0000000";
     constant IMM_L_008 : std_logic_vector(4 downto 0) := "01000";
     constant IMM_12_N2 : std_logic := '1';
     constant IMM_11_N2 : std_logic := '1';
     constant IMM_H_N2 : std_logic_vector(5 downto 0) := "111111";
     constant IMM_L_N2 : std_logic_vector(3 downto 0):= "1111";
+    constant IMM_J_N4 : std_logic_vector(19 downto 0) := "11111111110111111111";
     -- NOP
     constant NOP : std_logic_vector(31 downto 0) := F7_ZERO & ZERO & ZERO & F3_ADD & ZERO & R_OP_051;
 constant data : InstrMemArr := (
-
-    IMM_0x006 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0x006
-    IMM_0x001 & ZERO & F3_ADD & T3 & I_OP_019, -- addi t3, zero, 0x001
-    IMM_0x700 & ZERO & F3_ADD & T1 & I_OP_019, -- addi t1, zero, 0x700 
+    -- Demo 1
+    --IMM_0x006 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0x006
+    --IMM_0x001 & ZERO & F3_ADD & T3 & I_OP_019, -- addi t3, zero, 0x001
+    --IMM_0x700 & ZERO & F3_ADD & T1 & I_OP_019, -- addi t1, zero, 0x700 
+    --IMM_0x002 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
+    --F7_ONE & T3 & T0 & F3_ADD & T0 & R_OP_051, -- sub t0, t0, t3
+    --F7_ZERO & T2 & T1 & F3_ADD & T1 & R_OP_051, -- add t1, t1, t2
+    --IMM_12_N2 & IMM_H_N2 & T0 & ZERO & F3_NE & IMM_L_N2 & IMM_11_N2 & B_OP_099, -- blt t2, zero, -2
+    --IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
+    --IMM_0x008 & ZERO & F3_WORD & T0 & I_OP_003, -- lw t0, 0x008(zero)
+    --NOP,
+    --NOP,
+    IMM_0x835 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0xf53
     IMM_0x002 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
-    F7_ONE & T3 & T0 & F3_ADD & T0 & R_OP_051, -- sub t0, t0, t3
-    F7_ZERO & T2 & T1 & F3_ADD & T1 & R_OP_051, -- add t1, t1, t2
-    IMM_12_N2 & IMM_H_N2 & T0 & ZERO & F3_NE & IMM_L_N2 & IMM_11_N2 & B_OP_099, -- blt t2, zero, -2
+    IMM_0x004 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
+    --IMM_0x008 & T0 & F3_SL & T1 & I_OP_019, -- slli t1, t0, 0x08
+    --IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
+    F7_ONE & T2 & T0 & F3_SR & T1 & R_OP_051, -- sra t1, t0, t2
+    --F7_ONE & IMM_5_0x8 & T0 & F3_SR & T1 & I_OP_019, -- srai t1, t0, 0x08
     IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
-    IMM_0x008 & ZERO & F3_WORD & T0 & I_OP_003, -- lw t0, 0x008(zero)
-    NOP,
-    NOP,
-    IMM_0xfff & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0xfff
-    IMM_0x008 & T0 & F3_SL & T1 & I_OP_019, -- slli t1, t0, 0x08
-    IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
-    IMM_0x008 & T0 & F3_SR & T1 & I_OP_019, -- srli t1, t0, 0x08
-    IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
+    -- IMM_J_N4 & RA & J_OP_111, -- jal ra, -4
+    IMM_0x001 & ZERO & F3_ZERO & RA & I_OP_103,
     others => NOP
     );
 begin
