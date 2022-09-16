@@ -3,34 +3,34 @@ use ieee.std_logic_1164.all;
 
 entity Top is
     generic(
-        N : integer := 32;
-        LOG2N : integer := 5;
-        M : integer := 5; -- register file 2^M * N
-        ROM_ADDRS : integer := 32; -- ROM address space
-        K : integer := 8);
+               N : integer := 32;
+               LOG2N : integer := 5;
+               M : integer := 5; -- register file 2^M * N
+               ROM_ADDRS : integer := 32; -- ROM address space
+               K : integer := 8);
     port(
-        CLK, CLR : in std_logic;
-        writeData, dataAddr : buffer std_logic_vector(N - 1 downto 0);
-        memWrite : buffer std_logic);
+    CLK, CLR : in std_logic;
+    writeData, dataAddr : buffer std_logic_vector(N - 1 downto 0);
+    memWrite : buffer std_logic);
 end Top;
 
 architecture Test of Top is
     component RISCV is
-    generic(
-        N : integer := 32;
-        LOG2N : integer := 5;
-        M : integer := 5); 
+        generic(
+                   N : integer := 32;
+                   LOG2N : integer := 5;
+                   M : integer := 5); 
     -- Ports
-    port(
-        CLK, CLR : std_logic;
-        readData, inst : in std_logic_vector(N - 1 downto 0);
-        writeData, aluResult  : out std_logic_vector(N - 1 downto 0);
+        port(
+        CLK, CLR : in std_logic;
+        ramRD, instr : in std_logic_vector(N - 1 downto 0);
+        ramWD, aluResult  : out std_logic_vector(N - 1 downto 0);
         pcout : out std_logic_vector(N - 1 downto 0);
         funct3 : out std_logic_vector(2 downto 0);
-        wRAM : out std_logic);
+        ramWE : out std_logic);
     end component;
     -- Instruction memory (ROM)
-    component InstrMemProgrammable is
+    component InstrMem is
         generic (
                     N : integer := 32;
                     M : integer := 32;  
@@ -52,11 +52,11 @@ architecture Test of Top is
         fun : in std_logic_vector(2 downto 0);
         RD : out STD_LOGIC_VECTOR (N - 1 downto 0));
     end component;
-    
+
     signal pc : std_logic_vector(N - 1 downto 0);
     signal instr : std_logic_vector(N - 1 downto 0);
     signal aluRes : std_logic_vector(N - 1 downto 0);
-    signal ramRD, ramWR : std_logic_vector(N - 1 downto 0);
+    signal ramRD, ramWD : std_logic_vector(N - 1 downto 0);
     signal funct3 : std_logic_vector(2 downto 0);
     signal ramWE : std_logic;
 begin
@@ -67,32 +67,32 @@ begin
                               M => ROM_ADDRS)
     port map (
                  A => aluRes,
-                 WD => ramWR,
+                 WD => ramWD,
                  WE => ramWE,
                  CLK => CLK,
                  fun => funct3,
                  RD => ramRD);
     -- Instruction memory (ROM)
-    rom: InstrMemProgrammable port map (
-                               A => pc,
-                               RD => instr);
+    rom: InstrMem port map (
+                                           A => pc,
+                                           RD => instr);
     -- RISC-V processor
     riscv1: RISCV generic map(
-        N => N,
-        LOG2N => LOG2N,
-        M => M)
+                                 N => N,
+                                 LOG2N => LOG2N,
+                                 M => M)
     port map(
-        CLK => CLK,
-        CLR => CLR,
-        readData => ramRD,
-        inst => instr,
-        writeData => ramWR,
-        aluResult => aluRes,
-        pcout => pc,
-        funct3 => funct3,
-        wRAM => ramWE);
+                CLK => CLK,
+                CLR => CLR,
+                ramRD => ramRD,
+                instr => instr,
+                ramWD => ramWD,
+                aluResult => aluRes,
+                pcout => pc,
+                funct3 => funct3,
+                ramWE => ramWE);
     -- Map output signals
     memWrite <= ramWE;
-    writeData <= ramWR;
+    writeData <= ramWD;
     dataAddr <= aluRes;
 end Test;

@@ -109,14 +109,27 @@ constant data : InstrMemArr := (
     --NOP,
     IMM_0x835 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0xf53
     IMM_0x002 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
-    IMM_0x004 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
-    --IMM_0x008 & T0 & F3_SL & T1 & I_OP_019, -- slli t1, t0, 0x08
+    NOP,
+    NOP,
+    NOP,
+    NOP,
+    --IMM_0x004 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
+    IMM_0x008 & T0 & F3_SL & T1 & I_OP_019, -- slli t1, t0, 0x08
     --IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
-    F7_ONE & T2 & T0 & F3_SR & T1 & R_OP_051, -- sra t1, t0, t2
+    --F7_ONE & T2 & T0 & F3_SR & T1 & R_OP_051, -- sra t1, t0, t2
     --F7_ONE & IMM_5_0x8 & T0 & F3_SR & T1 & I_OP_019, -- srai t1, t0, 0x08
+    NOP,
+    NOP,
+    NOP,
+    NOP,
     IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
+    NOP,
+    NOP,
+    NOP,
+    NOP,
+    IMM_0x008 & ZERO & F3_WORD & T0 & I_OP_003, -- lw t0, 0x008(zero)
     -- IMM_J_N4 & RA & J_OP_111, -- jal ra, -4
-    IMM_0x001 & ZERO & F3_ZERO & RA & I_OP_103,
+    -- IMM_0x001 & ZERO & F3_ZERO & RA & I_OP_103,
     others => NOP
     );
 begin

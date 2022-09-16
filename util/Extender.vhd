@@ -3,9 +3,9 @@ use ieee.std_logic_1164.all;
 
 entity Extender is
     port(
-        INST : in std_logic_vector(31 downto 0);
-        SRC : in std_logic_vector(1 downto 0);
-        EXT : out std_logic_vector(31 downto 0));
+        instr : in std_logic_vector(31 downto 0);
+        src : in std_logic_vector(1 downto 0);
+        ext : out std_logic_vector(31 downto 0));
 end Extender;
 
 architecture Behavioral of Extender is
@@ -17,21 +17,21 @@ architecture Behavioral of Extender is
     signal src_I, src_S, src_B, src_J : std_logic_vector(N - 1 downto 0);
 begin
     -- Sign extension
-    sign <= (others => INST(N - 1));
-    sign_J <= (others => INST(N - 1));
+    sign <= (others => instr(N - 1));
+    sign_J <= (others => instr(N - 1));
 
     -- Type I : 12bit signed (00)
-   src_I <= sign & INST(31 downto 20);
+   src_I <= sign & instr(31 downto 20);
     -- Type S : 12bit signed (01)
-   src_S <= sign & INST(31 downto 25) & INST(11 downto 7);
+   src_S <= sign & instr(31 downto 25) & instr(11 downto 7);
     -- Type B : 13bit signed (10)
-   src_B <= sign & INST(7) & INST(30 downto 25) & INST(11 downto 8) & '0';
+   src_B <= sign & instr(7) & instr(30 downto 25) & instr(11 downto 8) & '0';
     -- Type J : 21bit signed (11)
-   src_J <= sign_J & INST(19 downto 12) & INST(20) & INST(30 downto 21) & '0';
+   src_J <= sign_J & instr(19 downto 12) & instr(20) & instr(30 downto 21) & '0';
 
    -- Src mux
-   srcmux: with SRC select
-       EXT <= src_I when "00",
+   srcmux: with src select
+       ext <= src_I when "00",
               src_S when "01",
               src_B when "10",
               src_J when others;

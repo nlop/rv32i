@@ -6,8 +6,8 @@ entity ControlUnit is
              op : in std_logic_vector(6 downto 0);
              aluOP : out std_logic_vector(1 downto 0);
              srcB : out std_logic;
-             WE3En : out std_logic;
-             wRamEn : out std_logic;
+             regWE3 : out std_logic;
+             ramWE : out std_logic;
              resSrc : out std_logic_vector(1 downto 0);
              extSrc : out std_logic_vector(1 downto 0);
              BR : out std_logic;
@@ -25,8 +25,8 @@ ctl: process (op) begin
         when "0000011" =>
             aluOP <= "00";  
             srcB <= '0';
-            WE3En <= '1';
-            wRamEn <= '0';
+            regWE3 <= '1';
+            ramWE <= '0';
             resSrc <= "00";
             extSrc <= "00";
             BR <= '0';
@@ -36,8 +36,8 @@ ctl: process (op) begin
         when "0010011" =>
             aluOP <= "10";  
             srcB <= '0';
-            WE3En <= '1';
-            wRamEn <= '0';
+            regWE3 <= '1';
+            ramWE <= '0';
             resSrc <= "01";
             extSrc <= "00";
             BR <= '0';
@@ -47,8 +47,8 @@ ctl: process (op) begin
         when "0100011" =>
             aluOP <= "00";  
             srcB <= '0';
-            WE3En <= '0';
-            wRamEn <= '1';
+            regWE3 <= '0';
+            ramWE <= '1';
             resSrc <= "00";
             extSrc <= "01";
             BR <= '0';
@@ -58,8 +58,8 @@ ctl: process (op) begin
         when "0110011" =>
             aluOP <= "11";  
             srcB <= '1';
-            WE3En <= '1';
-            wRamEn <= '0';
+            regWE3 <= '1';
+            ramWE <= '0';
             resSrc <= "01";
             extSrc <= "00";
             BR <= '0';
@@ -69,8 +69,8 @@ ctl: process (op) begin
         when "1100011" =>
             aluOP <= "01";  
             srcB <= '1';
-            WE3En <= '0';
-            wRamEn <= '0';
+            regWE3 <= '0';
+            ramWE <= '0';
             resSrc <= "01";
             extSrc <= "10";
             BR <= '1';
@@ -80,8 +80,8 @@ ctl: process (op) begin
         when "1100111" =>
             aluOP <= "00";  
             srcB <= '0';
-            WE3En <= '1';
-            wRamEn <= '0';
+            regWE3 <= '1';
+            ramWE <= '0';
             resSrc <= "01";
             extSrc <= "00";
             BR <= '0';
@@ -91,8 +91,8 @@ ctl: process (op) begin
         when "1101111" =>
             aluOP <= "00";  
             srcB <= '0';
-            WE3En <= '1';
-            wRamEn <= '0';
+            regWE3 <= '1';
+            ramWE <= '0';
             resSrc <= "10";
             extSrc <= "11";
             BR <= '0';
@@ -101,8 +101,8 @@ ctl: process (op) begin
         when others => 
             aluOP <= "00";  
             srcB <= '0';
-            WE3En <= '0';
-            wRamEn <= '0';
+            regWE3 <= '0';
+            ramWE <= '0';
             resSrc <= "00";
             extSrc <= "00";
             BR <= '0';

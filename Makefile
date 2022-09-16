@@ -19,7 +19,7 @@ testbench: top Testbench.o
 top: riscv Top.o
 	$(GHDL) -e $(GHDLFLAGS) $@
 
-riscv: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o /usr/lib/ghdl/ieee/v93/std_logic_arith.o /usr/lib/ghdl/ieee/v93/std_logic_unsigned.o ALUPackage.o RISCV.o ControlUnit.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o InstrMemProgrammable.o /usr/lib/ghdl/ieee/v93/std_logic_signed.o PC.o RegisterFile.o ALUNbits.o ConditionChecker.o RAM.o Extender.o DemuxGeneric93.o BarrelShifter.o MuxGeneric93.o SimpleRegister.o ALUBit.o sumaBit.o
+riscv: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o /usr/lib/ghdl/ieee/v93/std_logic_arith.o /usr/lib/ghdl/ieee/v93/std_logic_unsigned.o ALUPackage.o PipePackage.o RISCV.o ControlUnit.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o InstrMem.o /usr/lib/ghdl/ieee/v93/std_logic_signed.o PC.o RegisterFile.o ALUNbits.o DecodePipe.o ExecutePipe.o MemoryPipe.o WritebackPipe.o ConditionChecker.o RAM.o Extender.o DemuxGeneric93.o BarrelShifter.o MuxGeneric93.o SimpleRegister.o ALUBit.o sumaBit.o
 	$(GHDL) -e $(GHDLFLAGS) $@
 
 # Run target
@@ -41,6 +41,8 @@ run: testbench
 	exit 1
 ALUPackage.o: alu/ALUPackage.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
+PipePackage.o: pipes/PipePackage.vhd
+	$(GHDL) -a $(GHDLFLAGS) $<
 Testbench.o: Testbench.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 Top.o: Top.vhd
@@ -55,7 +57,7 @@ ControlUnit.o: control/ControlUnit.vhd
 /usr/lib/ghdl/ieee/v93/numeric_std-body.o: /usr/lib/ghdl/ieee/v93/../../src/ieee/v93/numeric_std-body.vhdl
 	@echo "This file was not locally built ($<)"
 	exit 1
-InstrMemProgrammable.o: mem/instmem/InstrMemProgrammable.vhd
+InstrMem.o: mem/instmem/InstrMem.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 /usr/lib/ghdl/ieee/v93/std_logic_signed.o: /usr/lib/ghdl/ieee/v93/../../src/synopsys/std_logic_signed.vhdl
 	@echo "This file was not locally built ($<)"
@@ -63,6 +65,14 @@ InstrMemProgrammable.o: mem/instmem/InstrMemProgrammable.vhd
 PC.o: pc/PC.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 RegisterFile.o: rf/RegisterFile.vhd
+	$(GHDL) -a $(GHDLFLAGS) $<
+DecodePipe.o: pipes/DecodePipe.vhd
+	$(GHDL) -a $(GHDLFLAGS) $<
+ExecutePipe.o: pipes/ExecutePipe.vhd
+	$(GHDL) -a $(GHDLFLAGS) $<
+MemoryPipe.o: pipes/MemoryPipe.vhd
+	$(GHDL) -a $(GHDLFLAGS) $<
+WritebackPipe.o: pipes/WritebackPipe.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 ALUNbits.o: alu/ALUNbits.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
@@ -91,17 +101,22 @@ sumaBit.o: alu/sumaBit.vhd
 /usr/lib/ghdl/ieee/v93/std_logic_arith.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 /usr/lib/ghdl/ieee/v93/std_logic_unsigned.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_arith.o
 ALUPackage.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
+PipePackage.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 RISCV.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o /usr/lib/ghdl/ieee/v93/std_logic_unsigned.o ALUPackage.o
 Top.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o
 Testbench.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o
 ControlUnit.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 /usr/lib/ghdl/ieee/v93/numeric_std.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 /usr/lib/ghdl/ieee/v93/numeric_std-body.o:  /usr/lib/ghdl/ieee/v93/numeric_std.o
-InstrMemProgrammable.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o
+InstrMem.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o
 /usr/lib/ghdl/ieee/v93/std_logic_signed.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_arith.o
 PC.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_signed.o
 RegisterFile.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 ALUNbits.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o ALUPackage.o
+DecodePipe.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o SimpleRegister.o PipePackage.o
+ExecutePipe.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o SimpleRegister.o PipePackage.o
+MemoryPipe.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o SimpleRegister.o PipePackage.o
+WritebackPipe.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o SimpleRegister.o PipePackage.o
 ConditionChecker.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 RAM.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/numeric_std.o
 Extender.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
