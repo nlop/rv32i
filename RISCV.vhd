@@ -45,17 +45,17 @@ architecture Behavioral of RISCV is
     end component;
     --Control unit 
     component ControlUnit is
-    port (
-             op : in std_logic_vector(6 downto 0);
-             aluOP : out std_logic_vector(1 downto 0);
-             srcB : out std_logic;
-             regWE3 : out std_logic;
-             ramWE : out std_logic;
-             resSrc : out std_logic_vector(1 downto 0);
-             extSrc : out std_logic_vector(1 downto 0);
-             BR : out std_logic;
-             JMP : out std_logic;
-            jmpSrc : out std_logic);
+        port (
+                 op : in std_logic_vector(6 downto 0);
+                 aluOP : out std_logic_vector(1 downto 0);
+                 srcB : out std_logic;
+                 regWE3 : out std_logic;
+                 ramWE : out std_logic;
+                 resSrc : out std_logic_vector(1 downto 0);
+                 extSrc : out std_logic_vector(1 downto 0);
+                 BR : out std_logic;
+                 JMP : out std_logic;
+                 jmpSrc : out std_logic);
     end component;
     -- Program counter
     component PC is
@@ -71,6 +71,18 @@ architecture Behavioral of RISCV is
                  BRE : out std_logic;
                  funct3 : in std_logic_vector(2 downto 0);
         Z, OV, C, N : in std_logic);
+    end component;
+    -- Forwarding Unit
+    component ForwardingUnit is
+        generic (M : integer := 5);
+        port (
+        W3EnW, W3EnM : in std_logic;
+        Rs1E : in std_logic_vector(M - 1 downto 0);
+        Rs2E : in std_logic_vector(M - 1 downto 0);
+        rdM : in std_logic_vector(M - 1 downto 0);
+        rdW : in std_logic_vector(M - 1 downto 0);
+        forwardAE : out std_logic_vector(1 downto 0);
+        forwardBE : out std_logic_vector(1 downto 0));
     end component;
     -- === Signals ===
     -- Register file signals
@@ -105,11 +117,15 @@ architecture Behavioral of RISCV is
     -- # Execute 
     -- ## Register file
     signal rdE : std_logic_vector(M - 1 downto 0);
+    signal Rs1E : std_logic_vector(M - 1 downto 0);
+    signal Rs2E : std_logic_vector(M - 1 downto 0);
     -- ## Control
     signal controlE : std_logic_vector(N_CONTROLSIG_E - 1 downto 0);
     signal controlE_M : std_logic_vector(N_CONTROLSIG_M - 1 downto 0);
     -- ## ALU
     signal aluResE : std_logic_vector(N - 1 downto 0);
+    signal inputAE : std_logic_vector(N - 1 downto 0);
+    signal fwinputBE : std_logic_vector(N - 1 downto 0);
     signal Rd1E : std_logic_vector(N - 1 downto 0);
     signal Rd2E : std_logic_vector(N - 1 downto 0);
     signal flagsE : std_logic_vector(3 downto 0);
@@ -148,6 +164,9 @@ architecture Behavioral of RISCV is
     signal rdW : std_logic_vector(M - 1 downto 0);
     -- ## PC
     signal PCplus4W : std_logic_vector(N - 1 downto 0);
+    -- # Hazard control
+    signal forwardAE : std_logic_vector(1 downto 0);
+    signal forwardBE : std_logic_vector(1 downto 0);
 begin
     -- Control unit
     cu: ControlUnit 
@@ -199,7 +218,7 @@ begin
     -- ALU unit
     alu: ALUNbits generic map (N => N, LOG2N => LOG2N)
     port map (
-                 A => Rd1E,
+                 A => inputAE,
                  B => inputBE,
                  aluOP => controlE(2 downto 1),
                  funct3 => controlE(12 downto 10),
@@ -209,8 +228,19 @@ begin
                  flg_n => flagsE(1),
                  flg_c => flagsE(2),
                  flg_ov => flagsE(3));
-    -- srcB Mux
-    sbmux: inputBE <= immExtE when controlE(0) = '0' else Rd2E;
+    -- inputAE mux
+    iaemux: with forwardAE select
+        inputAE <= Rd1E when "00",
+                   resultW when "01",
+                   resultM when others;
+    -- fwinputBE mux
+    fwibemux: with forwardBE select
+        fwinputBE <= Rd2E when "00",
+                   resultW when "01",
+                   resultM when others;
+
+    -- inputBE mux
+    ibemux: inputBE <= immExtE when controlE(0) = '0' else fwinputBE;
     --                             ^ srcB
     -- Cond. checker
     cond: ConditionChecker 
@@ -223,7 +253,7 @@ begin
                  N => flagsE(1));
     -- Result mux
     resmux: with controlW(1 downto 0) select
-        result <= ramRdW when "00",
+        result <= ramRdW when "01",
                   PCplus4W when "10",
                   resultW when others;
     -- Immediate extender
@@ -237,71 +267,86 @@ begin
     controlM_W <= (controlM(3) & controlM(2 downto 1));
     -- Pipeline
     pipeDecode: DecodePipe generic map (N => N)
-        port map(
-            CLK => CLK,
-            CLR => CLR,
-            L => '1',
-            instrF => instr,
-            pcF => pcF,
-            PCplus4F => PCplus4F,
-            instrD => instrD,
-            pcD => pcD,
-            PCplus4D => PCplus4D); 
+    port map(
+                CLK => CLK,
+                CLR => CLR,
+                L => '1',
+                instrF => instr,
+                pcF => pcF,
+                PCplus4F => PCplus4F,
+                instrD => instrD,
+                pcD => pcD,
+                PCplus4D => PCplus4D); 
     pipeExecute: ExecutePipe generic map(N => N,
-        M => M,
-        N_CONTROLSIG => N_CONTROLSIG_E)
-        port map(
-            CLK => CLK,
-            CLR => CLR,
-            L => '1',
-            controlD => controlD_E,
-            Rd1D => RD1,
-            Rd2D => RD2,
-            rdD => instrD(11 downto 7),
-            pcD => pcD,
-            immExtD => immExtD,
-            PCplus4D => PCplus4D,
-            controlE => controlE,
-            Rd1E => Rd1E,
-            Rd2E => Rd2E,
-            rdE => rdE,
-            pcE => pcE,
-            immExtE => immExtE,
-            PCplus4E => PCplus4E);
+                                         M => M,
+                                         N_CONTROLSIG => N_CONTROLSIG_E)
+    port map(
+                CLK => CLK,
+                CLR => CLR,
+                L => '1',
+                controlD => controlD_E,
+                Rd1D => RD1,
+                Rd2D => RD2,
+                rdD => instrD(11 downto 7),
+                pcD => pcD,
+                Rs1D => instrD(19 downto 15),
+                Rs2D => instrD(24 downto 20),
+                immExtD => immExtD,
+                PCplus4D => PCplus4D,
+                controlE => controlE,
+                Rd1E => Rd1E,
+                Rd2E => Rd2E,
+                rdE => rdE,
+                pcE => pcE,
+                Rs1E => Rs1E,
+                Rs2E => Rs2E,
+                immExtE => immExtE,
+                PCplus4E => PCplus4E);
     pipeMemory: MemoryPipe generic map(N => N,
-        M => M,
-        N_CONTROLSIG => N_CONTROLSIG_M)
-        port map(
-            CLK => CLK,
-            CLR => CLR,
-            L => '1',
-            controlE => controlE_M,
-            resultE => aluResE,
-            writeDataE => Rd2E,
-            rdE => rdE,
-            PCplus4E => PCplus4E,
-            controlM => controlM,
-            resultM => resultM,
-            writeDataM => writeDataM,
-            rdM => rdM,
-            PCplus4M => PCplus4M);
+                                       M => M,
+                                       N_CONTROLSIG => N_CONTROLSIG_M)
+    port map(
+                CLK => CLK,
+                CLR => CLR,
+                L => '1',
+                controlE => controlE_M,
+                resultE => aluResE,
+                writeDataE => Rd2E,
+                rdE => rdE,
+                PCplus4E => PCplus4E,
+                controlM => controlM,
+                resultM => resultM,
+                writeDataM => writeDataM,
+                rdM => rdM,
+                PCplus4M => PCplus4M);
     pipeWriteback: WritebackPipe generic map(N => N,
-        M => M,
-        N_CONTROLSIG => N_CONTROLSIG_W)
-        port map(
-            CLK => CLK,
-            CLR => CLR,
-            L => '1',
-            controlM => controlM_W,
-            resultM => resultM,
-            ramRdM => ramRD,
-            rdM => rdM,
-            PCplus4M => PCplus4M,
-            controlW => controlW,
-            resultW => resultW,
-            ramRdW => ramRdW,
-            rdW => rdW,
-            PCplus4W => PCplus4W);
+                                             M => M,
+                                             N_CONTROLSIG => N_CONTROLSIG_W)
+    port map(
+                CLK => CLK,
+                CLR => CLR,
+                L => '1',
+                controlM => controlM_W,
+                resultM => resultM,
+                ramRdM => ramRD,
+                rdM => rdM,
+                PCplus4M => PCplus4M,
+                controlW => controlW,
+                resultW => resultW,
+                ramRdW => ramRdW,
+                rdW => rdW,
+                PCplus4W => PCplus4W);
+    -- Hazard management
+    fwunit: ForwardingUnit generic map (M => M)
+    port map(
+        W3EnM => controlM(3),
+        W3EnW => controlW(2),
+        Rs1E => Rs1E,
+        Rs2E => Rs2E,
+        rdM => rdM,
+        rdW => rdW,
+        forwardAE => forwardAE,
+        forwardBE => forwardBE);
     -- Map output signals
     ramWD <= writeDataM;
     funct3 <= controlM(6 downto 4);

@@ -27,7 +27,7 @@ ctl: process (op) begin
             srcB <= '0';
             regWE3 <= '1';
             ramWE <= '0';
-            resSrc <= "00";
+            resSrc <= "01";
             extSrc <= "00";
             BR <= '0';
             JMP <= '0';
@@ -38,7 +38,7 @@ ctl: process (op) begin
             srcB <= '0';
             regWE3 <= '1';
             ramWE <= '0';
-            resSrc <= "01";
+            resSrc <= "00";
             extSrc <= "00";
             BR <= '0';
             JMP <= '0';
@@ -49,7 +49,7 @@ ctl: process (op) begin
             srcB <= '0';
             regWE3 <= '0';
             ramWE <= '1';
-            resSrc <= "00";
+            resSrc <= "01";
             extSrc <= "01";
             BR <= '0';
             JMP <= '0';
@@ -60,7 +60,7 @@ ctl: process (op) begin
             srcB <= '1';
             regWE3 <= '1';
             ramWE <= '0';
-            resSrc <= "01";
+            resSrc <= "00";
             extSrc <= "00";
             BR <= '0';
             JMP <= '0';
@@ -71,7 +71,7 @@ ctl: process (op) begin
             srcB <= '1';
             regWE3 <= '0';
             ramWE <= '0';
-            resSrc <= "01";
+            resSrc <= "00";
             extSrc <= "10";
             BR <= '1';
             JMP <= '0';
@@ -82,7 +82,7 @@ ctl: process (op) begin
             srcB <= '0';
             regWE3 <= '1';
             ramWE <= '0';
-            resSrc <= "01";
+            resSrc <= "00";
             extSrc <= "00";
             BR <= '0';
             JMP <= '1';
@@ -103,7 +103,7 @@ ctl: process (op) begin
             srcB <= '0';
             regWE3 <= '0';
             ramWE <= '0';
-            resSrc <= "00";
+            resSrc <= "01";
             extSrc <= "00";
             BR <= '0';
             JMP <= '0';

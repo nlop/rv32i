@@ -27,6 +27,8 @@ entity ExecutePipe is
         Rd2D : in std_logic_vector(N - 1 downto 0);
         rdD : in std_logic_vector(M - 1 downto 0);
         pcD : in std_logic_vector(N - 1 downto 0);
+        Rs1D : in std_logic_vector(M - 1 downto 0);
+        Rs2D : in std_logic_vector(M - 1 downto 0);
         immExtD : in std_logic_vector(N - 1 downto 0);
         PCplus4D : in std_logic_vector(N - 1 downto 0);
         controlE : out std_logic_vector(N_CONTROLSIG - 1 downto 0);
@@ -34,6 +36,8 @@ entity ExecutePipe is
         Rd2E : out std_logic_vector(N - 1 downto 0);
         rdE : out std_logic_vector(M - 1 downto 0);
         pcE : out std_logic_vector(N - 1 downto 0);
+        Rs1E : out std_logic_vector(M - 1 downto 0);
+        Rs2E : out std_logic_vector(M - 1 downto 0);
         immExtE : out std_logic_vector(N - 1 downto 0);
         PCplus4E : out std_logic_vector(N - 1 downto 0));
 end ExecutePipe;
@@ -65,6 +69,12 @@ begin
     immExtReg: SimpleRegister
         generic map (N => immExtD'LENGTH)
         port map(immExtD, immExtE, CLR, CLK, L);
+    Rs1Reg: SimpleRegister
+        generic map (N => Rs1D'LENGTH)
+        port map(Rs1D, Rs1E, CLR, CLK, L);
+    Rs2Reg: SimpleRegister
+        generic map (N => Rs2D'LENGTH)
+        port map(Rs2D, Rs2E, CLR, CLK, L);
     PCplus4Reg: SimpleRegister
         generic map (N => PCplus4D'LENGTH)
         port map(PCplus4D, PCplus4E, CLR, CLK, L);

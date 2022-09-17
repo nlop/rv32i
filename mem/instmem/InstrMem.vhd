@@ -93,11 +93,14 @@ architecture Behavioral of InstrMem is
     constant IMM_L_N2 : std_logic_vector(3 downto 0):= "1111";
     constant IMM_J_N4 : std_logic_vector(19 downto 0) := "11111111110111111111";
     -- NOP
-    constant NOP : std_logic_vector(31 downto 0) := F7_ZERO & ZERO & ZERO & F3_ADD & ZERO & R_OP_051;
+    constant NOP : std_logic_vector(31 downto 0) := F7_ZERO & ZERO & ZERO & F3_ADD & ZERO & R_OP_051; -- add zero, zero, zero
 constant data : InstrMemArr := (
     -- Demo 1
-    --IMM_0x006 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0x006
-    --IMM_0x001 & ZERO & F3_ADD & T3 & I_OP_019, -- addi t3, zero, 0x001
+    IMM_0x006 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0x006
+    IMM_0x004 & ZERO & F3_ADD & T1 & I_OP_019, -- addi t1, zero, 0x001
+    F7_ZERO & T1 & T0 & F3_ADD & T2 & R_OP_051, -- add t2, t0, t1
+    IMM_0x008 & T2 & F3_SL & T3 & I_OP_019, -- slli t3, t2, 0x08
+    --F7_ONE & T3 & T0 & F3_ADD & T0 & R_OP_051, -- sub t0, t0, t3
     --IMM_0x700 & ZERO & F3_ADD & T1 & I_OP_019, -- addi t1, zero, 0x700 
     --IMM_0x002 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
     --F7_ONE & T3 & T0 & F3_ADD & T0 & R_OP_051, -- sub t0, t0, t3
@@ -107,27 +110,15 @@ constant data : InstrMemArr := (
     --IMM_0x008 & ZERO & F3_WORD & T0 & I_OP_003, -- lw t0, 0x008(zero)
     --NOP,
     --NOP,
-    IMM_0x835 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0xf53
-    IMM_0x002 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
-    NOP,
-    NOP,
-    NOP,
-    NOP,
+    --IMM_0x835 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0xf53
+    --IMM_0x002 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
     --IMM_0x004 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
-    IMM_0x008 & T0 & F3_SL & T1 & I_OP_019, -- slli t1, t0, 0x08
+    --IMM_0x008 & T0 & F3_SL & T1 & I_OP_019, -- slli t1, t0, 0x08
     --IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
     --F7_ONE & T2 & T0 & F3_SR & T1 & R_OP_051, -- sra t1, t0, t2
     --F7_ONE & IMM_5_0x8 & T0 & F3_SR & T1 & I_OP_019, -- srai t1, t0, 0x08
-    NOP,
-    NOP,
-    NOP,
-    NOP,
-    IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
-    NOP,
-    NOP,
-    NOP,
-    NOP,
-    IMM_0x008 & ZERO & F3_WORD & T0 & I_OP_003, -- lw t0, 0x008(zero)
+    --IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
+    --IMM_0x008 & ZERO & F3_WORD & T0 & I_OP_003, -- lw t0, 0x008(zero)
     -- IMM_J_N4 & RA & J_OP_111, -- jal ra, -4
     -- IMM_0x001 & ZERO & F3_ZERO & RA & I_OP_103,
     others => NOP
