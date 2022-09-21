@@ -179,7 +179,10 @@ architecture Behavioral of RISCV is
     signal forwardAE : std_logic_vector(1 downto 0);
     signal forwardBE : std_logic_vector(1 downto 0);
     -- ## Stall unit
-    signal notStallF, notStallD, flushE : std_logic;
+    signal notStallF, notStallD, stallFlushE : std_logic;
+    -- ## Branching
+    signal flushD : std_logic;
+    signal flushE : std_logic;
 begin
     -- ~CLK
     nCLK <= not CLK;
@@ -285,7 +288,7 @@ begin
     pipeDecode: DecodePipe generic map (N => N)
     port map(
                 CLK => CLK,
-                CLR => CLR,
+                CLR => flushD,
                 L => notStallD,
                 instrF => instr,
                 pcF => pcF,
@@ -371,8 +374,10 @@ begin
         Rs2D => instrD(24 downto 20),
         notStallF => notStallF,
         notStallD => notStallD,
-        flushE => flushE);
-        
+        flushE => stallFlushE);
+    -- Branching hazards
+    flushD <= wpcSrcE;
+    flushE <= stallFlushE or wpcSrcE;
     -- Map output signals
     ramWD <= writeDataM;
     funct3 <= controlM(6 downto 4);
