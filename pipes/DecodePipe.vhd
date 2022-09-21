@@ -14,22 +14,22 @@ entity DecodePipe is
 end DecodePipe;
 
 architecture RTL of DecodePipe is
-    component SimpleRegister is
+    component SimpleRegisterReset is
     generic ( N : integer := 16);
         port ( D : in std_logic_vector (N - 1 downto 0);
                Q : out std_logic_vector (N - 1 downto 0);
                CLR, CLK, L : in std_logic);
     end component;
 begin
-    instrReg: SimpleRegister 
+    instrReg: SimpleRegisterReset 
         generic map(N => instrF'LENGTH)
         port map(instrF, instrD, CLR, CLK, L);
 
-    pcReg: SimpleRegister 
+    pcReg: SimpleRegisterReset 
         generic map(N => pcF'LENGTH)
         port map(pcF, pcD, CLR, CLK, L);
 
-    PCplus4Reg: SimpleRegister 
+    PCplus4Reg: SimpleRegisterReset 
         generic map(N => PCplus4F'LENGTH)
         port map(PCplus4F, PCplus4D, CLR, CLK, L);
 end RTL;

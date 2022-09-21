@@ -71,6 +71,8 @@ architecture Behavioral of InstrMem is
     constant F3_ZERO : std_logic_vector(2 downto 0) := (others => '0');
     constant F3_WORD : std_logic_vector(2 downto 0) := "010";
     constant F3_ADD : std_logic_vector(2 downto 0) := "000";
+    constant F3_XOR : std_logic_vector(2 downto 0) := "100";
+    constant F3_OR : std_logic_vector(2 downto 0) := "110";
     constant F3_NE : std_logic_vector(2 downto 0) := "001";
     constant F3_SL : std_logic_vector(2 downto 0) := "001";
     constant F3_SR : std_logic_vector(2 downto 0) := "101";
@@ -95,11 +97,20 @@ architecture Behavioral of InstrMem is
     -- NOP
     constant NOP : std_logic_vector(31 downto 0) := F7_ZERO & ZERO & ZERO & F3_ADD & ZERO & R_OP_051; -- add zero, zero, zero
 constant data : InstrMemArr := (
-    -- Demo 1
-    IMM_0x006 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0x006
-    IMM_0x004 & ZERO & F3_ADD & T1 & I_OP_019, -- addi t1, zero, 0x001
-    F7_ZERO & T1 & T0 & F3_ADD & T2 & R_OP_051, -- add t2, t0, t1
-    IMM_0x008 & T2 & F3_SL & T3 & I_OP_019, -- slli t3, t2, 0x08
+    -- Forwarding unit demo
+    --IMM_0x006 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0x006
+    --IMM_0x004 & ZERO & F3_ADD & T1 & I_OP_019, -- addi t1, zero, 0x001
+    --F7_ZERO & T1 & T0 & F3_ADD & T2 & R_OP_051, -- add t2, t0, t1
+    --IMM_0x008 & T2 & F3_SL & T3 & I_OP_019, -- slli t3, t2, 0x08
+    -- 
+    -- Stall unit demo
+    IMM_0x835 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0x835
+    IMM_H_008 & T0 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t0, 0x008(zero)
+    IMM_0x002 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
+    IMM_0x008 & ZERO & F3_WORD & T1 & I_OP_003, -- lw t1, 0x008(zero)
+    F7_ZERO & T2 & T1 & F3_XOR & T3 & R_OP_051, -- xor t3, t1, t2
+    F7_ZERO & T2 & T1 & F3_SL & T4 & R_OP_051, -- sll t4, t1, t2
+    F7_ZERO & T2 & T1 & F3_OR & T5 & R_OP_051, -- or t5, t1, t2
     --F7_ONE & T3 & T0 & F3_ADD & T0 & R_OP_051, -- sub t0, t0, t3
     --IMM_0x700 & ZERO & F3_ADD & T1 & I_OP_019, -- addi t1, zero, 0x700 
     --IMM_0x002 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002

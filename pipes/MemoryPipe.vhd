@@ -17,38 +17,38 @@ entity MemoryPipe is
     port(
     CLK, CLR, L : in std_logic;
     controlE : in std_logic_vector(N_CONTROLSIG - 1 downto 0);
-    resultE : in std_logic_vector(N - 1 downto 0);
+    aluResultE : in std_logic_vector(N - 1 downto 0);
     writeDataE : in std_logic_vector(N - 1 downto 0);
     rdE : in std_logic_vector(M - 1 downto 0);
     PCplus4E : in std_logic_vector(N - 1 downto 0);
     controlM : out std_logic_vector(N_CONTROLSIG - 1 downto 0);
-    resultM : out std_logic_vector(N - 1 downto 0);
+    aluResultM : out std_logic_vector(N - 1 downto 0);
     writeDataM : out std_logic_vector(N - 1 downto 0);
     rdM : out std_logic_vector(M - 1 downto 0);
     PCplus4M : out std_logic_vector(N - 1 downto 0));
 end MemoryPipe; 
 
 architecture RTL of MemoryPipe is
-    component SimpleRegister is
+    component SimpleRegisterReset is
         generic ( N : integer := 16);
         port ( D : in std_logic_vector (N - 1 downto 0);
                Q : out std_logic_vector (N - 1 downto 0);
         CLR, CLK, L : in std_logic);
     end component;
 begin
-    controlReg: SimpleRegister 
+    controlReg: SimpleRegisterReset 
     generic map(N => controlE'LENGTH)
     port map(controlE, controlM, CLR, CLK, L);
-             resultReg: SimpleRegister 
-             generic map(N => resultE'LENGTH)
-    port map(resultE, resultM, CLR, CLK, L);
-             writeDataReg: SimpleRegister 
+             resultReg: SimpleRegisterReset 
+             generic map(N => aluResultE'LENGTH)
+    port map(aluResultE, aluResultM, CLR, CLK, L);
+             writeDataReg: SimpleRegisterReset 
              generic map(N => writeDataE'LENGTH)
     port map(writeDataE, writeDataM, CLR, CLK, L);
-             rdReg: SimpleRegister 
+             rdReg: SimpleRegisterReset 
              generic map(N => rdE'LENGTH)
     port map(rdE, rdM, CLR, CLK, L);
-             PCplus4Reg: SimpleRegister 
+             PCplus4Reg: SimpleRegisterReset 
              generic map(N => PCplus4E'LENGTH)
     port map(PCplus4E, PCplus4M, CLR, CLK, L);
 end RTL;

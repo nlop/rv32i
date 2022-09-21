@@ -19,7 +19,7 @@ testbench: top Testbench.o
 top: riscv Top.o
 	$(GHDL) -e $(GHDLFLAGS) $@
 
-riscv: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o /usr/lib/ghdl/ieee/v93/std_logic_arith.o /usr/lib/ghdl/ieee/v93/std_logic_unsigned.o ALUPackage.o PipePackage.o RISCV.o ControlUnit.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o InstrMem.o /usr/lib/ghdl/ieee/v93/std_logic_signed.o PC.o RegisterFile.o ALUNbits.o DecodePipe.o ExecutePipe.o MemoryPipe.o WritebackPipe.o ConditionChecker.o RAM.o Extender.o DemuxGeneric93.o ForwardingUnit.o BarrelShifter.o MuxGeneric93.o SimpleRegister.o ALUBit.o sumaBit.o
+riscv: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o /usr/lib/ghdl/ieee/v93/std_logic_arith.o /usr/lib/ghdl/ieee/v93/std_logic_unsigned.o ALUPackage.o PipePackage.o RISCV.o ControlUnit.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o InstrMem.o /usr/lib/ghdl/ieee/v93/std_logic_signed.o PC.o RegisterFile.o ALUNbits.o DecodePipe.o ExecutePipe.o MemoryPipe.o WritebackPipe.o ConditionChecker.o RAM.o Extender.o DemuxGeneric93.o ForwardingUnit.o StallUnit.o BarrelShifter.o MuxGeneric93.o SimpleRegister.o SimpleRegisterReset.o ALUBit.o sumaBit.o
 	$(GHDL) -e $(GHDLFLAGS) $@
 
 # Run target
@@ -84,6 +84,8 @@ Extender.o: util/Extender.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 ForwardingUnit.o: hazard/ForwardingUnit.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
+StallUnit.o: hazard/StallUnit.vhd
+	$(GHDL) -a $(GHDLFLAGS) $<
 DemuxGeneric93.o: rf/DemuxGeneric93.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 BarrelShifter.o: alu/BarrelShifter.vhd
@@ -91,6 +93,8 @@ BarrelShifter.o: alu/BarrelShifter.vhd
 MuxGeneric93.o: rf/MuxGeneric93.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 SimpleRegister.o: rf/SimpleRegister.vhd
+	$(GHDL) -a $(GHDLFLAGS) $<
+SimpleRegisterReset.o: pipes/SimpleRegisterReset.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 ALUBit.o: alu/ALUBit.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
@@ -124,9 +128,11 @@ RAM.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/numeric_s
 Extender.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 DemuxGeneric93.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/numeric_std.o
 ForwardingUnit.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/numeric_std.o
+StallUnit.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 BarrelShifter.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 MuxGeneric93.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/numeric_std.o
 SimpleRegister.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
+SimpleRegisterReset.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 ALUBit.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o ALUPackage.o
 sumaBit.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 

@@ -44,38 +44,38 @@ end ExecutePipe;
 
 architecture RTL of ExecutePipe is
 
-    component SimpleRegister is
+    component SimpleRegisterReset is
     generic ( N : integer := 16);
     port ( D : in std_logic_vector (N - 1 downto 0);
            Q : out std_logic_vector (N - 1 downto 0);
            CLR, CLK, L : in std_logic);
     end component;
 begin
-    controlReg: SimpleRegister
+    controlReg: SimpleRegisterReset
         generic map (N => controlD'LENGTH)
         port map(controlD, controlE, CLR, CLK, L);
-    Rd1Reg: SimpleRegister
+    Rd1Reg: SimpleRegisterReset
         generic map (N => Rd1D'LENGTH)
         port map(Rd1D, Rd1E, CLR, CLK, L);
-    Rd2Reg: SimpleRegister
+    Rd2Reg: SimpleRegisterReset
         generic map (N => Rd2D'LENGTH)
         port map(Rd2D, Rd2E, CLR, CLK, L);
-    rdReg: SimpleRegister
+    rdReg: SimpleRegisterReset
         generic map (N => rdD'LENGTH)
         port map(rdD, rdE, CLR, CLK, L);
-    pcReg: SimpleRegister
+    pcReg: SimpleRegisterReset
         generic map (N => pcD'LENGTH)
         port map(pcD, pcE, CLR, CLK, L);
-    immExtReg: SimpleRegister
+    immExtReg: SimpleRegisterReset
         generic map (N => immExtD'LENGTH)
         port map(immExtD, immExtE, CLR, CLK, L);
-    Rs1Reg: SimpleRegister
+    Rs1Reg: SimpleRegisterReset
         generic map (N => Rs1D'LENGTH)
         port map(Rs1D, Rs1E, CLR, CLK, L);
-    Rs2Reg: SimpleRegister
+    Rs2Reg: SimpleRegisterReset
         generic map (N => Rs2D'LENGTH)
         port map(Rs2D, Rs2E, CLR, CLK, L);
-    PCplus4Reg: SimpleRegister
+    PCplus4Reg: SimpleRegisterReset
         generic map (N => PCplus4D'LENGTH)
         port map(PCplus4D, PCplus4E, CLR, CLK, L);
 end RTL;
