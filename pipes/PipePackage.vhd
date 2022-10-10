@@ -18,27 +18,27 @@ package PipePackage is
     component ExecutePipe is
         generic(N : integer := 32;
                 M : integer := 5;
-                N_CONTROLSIG : integer := 14);
-        port(
+                N_CONTROLSIG : integer := 15);
+    port(
         CLK, CLR, L : in std_logic;
         controlD : in std_logic_vector(N_CONTROLSIG - 1 downto 0);
         Rd1D : in std_logic_vector(N - 1 downto 0);
         Rd2D : in std_logic_vector(N - 1 downto 0);
         rdD : in std_logic_vector(M - 1 downto 0);
-        pcD : in std_logic_vector(N - 1 downto 0);
         Rs1D : in std_logic_vector(M - 1 downto 0);
         Rs2D : in std_logic_vector(M - 1 downto 0);
         immExtD : in std_logic_vector(N - 1 downto 0);
+        PCtargetD : in std_logic_vector(N - 1 downto 0);
         PCplus4D : in std_logic_vector(N - 1 downto 0);
         controlE : out std_logic_vector(N_CONTROLSIG - 1 downto 0);
         Rd1E : out std_logic_vector(N - 1 downto 0);
         Rd2E : out std_logic_vector(N - 1 downto 0);
         rdE : out std_logic_vector(M - 1 downto 0);
-        pcE : out std_logic_vector(N - 1 downto 0);
         Rs1E : out std_logic_vector(M - 1 downto 0);
         Rs2E : out std_logic_vector(M - 1 downto 0);
         immExtE : out std_logic_vector(N - 1 downto 0);
-        PCplus4E : out std_logic_vector(N - 1 downto 0));
+        PCplus4E : out std_logic_vector(N - 1 downto 0);
+        PCtargetE : out std_logic_vector(N - 1 downto 0));
     end component;
 
     component MemoryPipe is 

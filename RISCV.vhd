@@ -5,6 +5,9 @@ use ieee.std_logic_unsigned.all;
 use work.ALUPackage.all;
 use work.PipePackage.all;
 
+--
+-- 5-stage pipelined RV32I processor
+--
 entity RISCV is
     generic(
                N : integer := 32;
@@ -18,7 +21,7 @@ entity RISCV is
     funct3 : out std_logic_vector(2 downto 0);
     ramWE : out std_logic);
     -- Constant
-    constant N_CONTROLSIG_E : integer := 14;
+    constant N_CONTROLSIG_E : integer := 15;
     constant N_CONTROLSIG_M : integer := 7;
     constant N_CONTROLSIG_W : integer := 3;
 end RISCV;
@@ -94,15 +97,21 @@ architecture Behavioral of RISCV is
                  Rs2D : in std_logic_vector(M - 1 downto 0);
         notStallF, notStallD, flushE : out std_logic);
     end component;
+    -- Branch predictor
+    component BranchPredictor is
+    port (
+    CLK, CLR, WE, taken : in std_logic;
+    take : out std_logic);
+    end component;
     -- === Signals ===
     -- ~CLK
     signal nCLK : std_logic;
-    -- # Fetch
-    -- ## PC
+    -- > Fetch
+    -- >> PC
     signal pcF : std_logic_vector(N - 1 downto 0);
     signal PCplus4F : std_logic_vector(N - 1 downto 0);
-    -- # Decode
-    -- ## Control
+    -- > Decode
+    -- >> Control
     signal controlD_E : std_logic_vector(N_CONTROLSIG_E - 1 downto 0);
     signal instrD : std_logic_vector(N - 1 downto 0);
     signal ramWeD : std_logic;
@@ -115,23 +124,26 @@ architecture Behavioral of RISCV is
     signal BreD : std_logic;
     signal JmpD : std_logic;
     signal jmpSrcD : std_logic;
-    -- ## Extender
+    -- >> Extender
     signal immExtD : std_logic_vector(N - 1 downto 0);
-    -- ## PC
+    -- >> PC
+    signal PCtargetD : std_logic_vector(N - 1 downto 0);
     signal pcD : std_logic_vector(N - 1 downto 0);
     signal PCplus4D : std_logic_vector(N - 1 downto 0);
-    -- ## Register file
+    -- >> Register file
     signal RD1 : std_logic_vector(N -1 downto 0);
     signal RD2 : std_logic_vector(N -1 downto 0);
-    -- # Execute 
-    -- ## Register file
+    -- >> Branch predictor
+    signal branchTakeD, takeD : std_logic;
+    -- > Execute 
+    -- >> Register file
     signal rdE : std_logic_vector(M - 1 downto 0);
     signal Rs1E : std_logic_vector(M - 1 downto 0);
     signal Rs2E : std_logic_vector(M - 1 downto 0);
-    -- ## Control
+    -- >> Control
     signal controlE : std_logic_vector(N_CONTROLSIG_E - 1 downto 0);
     signal controlE_M : std_logic_vector(N_CONTROLSIG_M - 1 downto 0);
-    -- ## ALU
+    -- >> ALU
     signal aluResE : std_logic_vector(N - 1 downto 0);
     signal inputAE : std_logic_vector(N - 1 downto 0);
     signal fwinputBE : std_logic_vector(N - 1 downto 0);
@@ -139,50 +151,56 @@ architecture Behavioral of RISCV is
     signal Rd2E : std_logic_vector(N - 1 downto 0);
     signal flagsE : std_logic_vector(3 downto 0);
     signal inputBE: std_logic_vector(N - 1 downto 0);
-    -- ## Condition checker
+    -- >> Condition checker
     signal breE : std_logic;
-    -- ## Extender
+    -- >> Extender
     signal immExtE : std_logic_vector(N - 1 downto 0);
-    -- ## PC
-    signal pcE : std_logic_vector(N - 1 downto 0);
-    signal PCjmpE : std_logic_vector(N - 1 downto 0);
-    signal PCtargetE : std_logic_vector(N - 1 downto 0);
-    signal wpcSrcE : std_logic;
-    signal wpcE : std_logic_vector(N - 1 downto 0);
+    -- >> PC
     signal PCplus4E : std_logic_vector(N - 1 downto 0);
-    -- # Memory
-    -- ## Control
+    signal PCtargetE : std_logic_vector(N - 1 downto 0);
+    -- > Memory
+    -- >> Control
     signal controlM : std_logic_vector(N_CONTROLSIG_M - 1 downto 0);
     signal controlM_W : std_logic_vector(N_CONTROLSIG_W - 1 downto 0);
-    -- ## RAM
+    -- >> RAM
     signal writeDataM : std_logic_vector(N - 1 downto 0);
-    -- ## Register file
+    -- >> Register file
     signal rdM : std_logic_vector(M - 1 downto 0);
-    -- ## PC
+    -- >> PC
     signal PCplus4M : std_logic_vector(N - 1 downto 0);
-    -- ## ALU
+    -- >> ALU
     signal aluResultM : std_logic_vector(N - 1 downto 0);
-    -- # Writeback
-    -- ## Control
+    -- > Writeback
+    -- >> Control
     signal controlW : std_logic_vector(N_CONTROLSIG_W - 1 downto 0);
-    -- ## ALU
+    -- >> ALU
     signal aluResultW : std_logic_vector(N - 1 downto 0);
-    -- ## RAM
+    -- >> RAM
     signal ramRdW : std_logic_vector(N - 1 downto 0);
-    -- ## Register file
+    -- >> Register file
     signal resultW : std_logic_vector(N - 1 downto 0);
     signal rdW : std_logic_vector(M - 1 downto 0);
-    -- ## PC
+    -- >> PC
     signal PCplus4W : std_logic_vector(N - 1 downto 0);
-    -- # Hazard control
-    -- ## Forwarding unit
+    -- > Hazard control
+    -- >> Forwarding unit
     signal forwardAE : std_logic_vector(1 downto 0);
     signal forwardBE : std_logic_vector(1 downto 0);
-    -- ## Stall unit
+    -- >> Stall unit
     signal notStallF, notStallD, stallFlushE : std_logic;
-    -- ## Branching
+    -- >> Branching
     signal flushD : std_logic;
     signal flushE : std_logic;
+    -- >> TEMP
+    signal wpcBrD : std_logic_vector(N - 1 downto 0);
+    signal wpcBrE : std_logic_vector(N - 1 downto 0);
+    signal selWpcBreE : std_logic_vector(1 downto 0);
+    signal wpcJmpD : std_logic_vector(N - 1 downto 0);
+    signal wpcJmpE : std_logic_vector(N - 1 downto 0);
+    signal wpcIn : std_logic_vector(N - 1 downto 0);
+    signal wpcSel : std_logic_vector(2 downto 0);
+    signal pcFlushDE : std_logic;
+    signal pcFlushD : std_logic;
 begin
     -- ~CLK
     nCLK <= not CLK;
@@ -203,22 +221,37 @@ begin
     pco: PC generic map (N => N)
     port map(
                 PCOUT => pcF,
-                WPC => wpcE,
+                WPC => wpcIn,
                 WE => notStallF,
                 CLK => CLK,
                 CLR => CLR);
-    -- wpcSrc '1' when: (type B) codition is meet, (type J) instruction is jump
-    -- else, use PC + 4 (PC + 1)
-    wpcSrcE <= (breE and controlE(3)) or controlE(4);
-    --                  ^ BR            ^ JMP
     -- WPC mux
-    wpcE <= PCplus4F when wpcSrcE = '0' else PCjmpE;
-    -- PCjmpE mux
-    PCjmpE <= aluResE when controlE(5) = '1' else PCtargetE;
+    wpcSel(2) <= ((brD and JmpD) or ((not brD) and (not JmpD))) and ((controlE(3) and controlE(4)) or ((not controlE(3)) and (not controlE(4))));
+    wpcSel(1) <= ((not controlE(3)) and controlE(4)) or ((JmpD and (not brD)) and (controlE(4) or (not controlE(3))));
+    wpcSel(0) <= (controlE(3) and (not controlE(4))) or (((not brD) and JmpD) and (controlE(3) or (not controlE(4))));
+    wpcmux: with wpcSel select
+        wpcIn <= wpcBrD when "000",
+                 wpcBrE when "001",
+                 wpcJmpD when "011",
+                 wpcJmpE when "010",
+                 PCplus4F when others;
+    -- WPC sources
+    wpcBrD <= PCtargetD when takeD = '1' else PCplus4F;
+    wpcJmpD <= PCtargetD when jmpSrcD = '0' else PCplus4F;
+    wpcJmpE <= aluResE when controlE(5) = '1' else PCplus4F;
+    selWpcBreE(1) <= breE and (not controlE(14));
+    selWpcBreE(0) <= (not breE) and controlE(14);
+    wpcbremux: with selWpcBreE select
+        wpcBrE <= PCplus4E when "01",
+                  PCtargetE when "10",
+                  PCplus4F when others;
+    -- PC flush
+    pcFlushDE <= (wpcSel(0) and controlE(5)) or (wpcSel(0) and (breE xor controlE(14))); 
+    pcFlushD <= (not wpcSel(2)) and ((wpcSel(1) and wpcSel(0) and (not jmpSrcD)) or ((not wpcSel(1)) and (not wpcSel(0)) and takeD)); 
     -- PC+imm adder
-    PCtargetE <= pcE + immExtE;    
+    PCtargetD <= pcD + immExtD;    
     -- PC + 1 (PC + 4)
-    PCplus4F <= pcF + 1;
+    PCplus4F <= pcF + 4;
     -- Register file instance
     rf: RegisterFile generic map (
                                      N => N,
@@ -281,7 +314,7 @@ begin
                                src => extSrcD,
                                ext => immExtD);
     -- Control signals
-    controlD_E <= (instrD(30) & instrD(14 downto 12) & regWE3D & resSrcD & ramWeD & jmpSrcD & JmpD & BrD & aluOpD & srcBD);
+    controlD_E <= (takeD & instrD(30) & instrD(14 downto 12) & regWE3D & resSrcD & ramWeD & jmpSrcD & JmpD & BrD & aluOpD & srcBD);
     controlE_M <= (controlE(12 downto 10) & controlE(9) & controlE(8 downto 7) & controlE(6));
     controlM_W <= (controlM(3) & controlM(2 downto 1));
     -- Pipeline
@@ -307,20 +340,20 @@ begin
                 Rd1D => RD1,
                 Rd2D => RD2,
                 rdD => instrD(11 downto 7),
-                pcD => pcD,
                 Rs1D => instrD(19 downto 15),
                 Rs2D => instrD(24 downto 20),
                 immExtD => immExtD,
                 PCplus4D => PCplus4D,
+                PCtargetD => PCtargetD,
                 controlE => controlE,
                 Rd1E => Rd1E,
                 Rd2E => Rd2E,
                 rdE => rdE,
-                pcE => pcE,
                 Rs1E => Rs1E,
                 Rs2E => Rs2E,
                 immExtE => immExtE,
-                PCplus4E => PCplus4E);
+                PCplus4E => PCplus4E,
+                PCtargetE => PCtargetE);
     pipeMemory: MemoryPipe generic map(N => N,
                                        M => M,
                                        N_CONTROLSIG => N_CONTROLSIG_M)
@@ -375,9 +408,17 @@ begin
         notStallF => notStallF,
         notStallD => notStallD,
         flushE => stallFlushE);
-    -- Branching hazards
-    flushD <= wpcSrcE;
-    flushE <= stallFlushE or wpcSrcE;
+    -- Branching hazards TODO: review with new Branch Precictor
+    flushD <= pcFlushDE or pcFlushD or CLR;
+    flushE <= stallFlushE or pcFlushDE or CLR;
+    -- Branch predictor
+    brp: BranchPredictor port map(
+        CLK => CLK,
+        CLR => CLR,
+        WE => BrD,
+        taken => breE,
+        take => takeD);
+    branchTakeD <= takeD and BrD;
     -- Map output signals
     ramWD <= writeDataM;
     funct3 <= controlM(6 downto 4);

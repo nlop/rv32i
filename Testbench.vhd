@@ -48,9 +48,9 @@ top1: Top port map(
 
 test: process(CLK) begin
     if (CLK'event and CLK = '0' and memWrite = '1') then
-        if (dataAddr = x"00000037" and writeData = x"00000019") then
-            report "No error: Simulation succeded" severity failure;
-        elsif (dataAddr = x"00000019") then
+        if (dataAddr = x"0000007C" and writeData = x"00000019") then
+            report "No error: Simulation succeded" severity note;
+        elsif (dataAddr /= x"00000060") then
             report "Simulation failed!" severity failure;
         end if;
     end if;

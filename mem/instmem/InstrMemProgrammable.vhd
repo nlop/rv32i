@@ -45,5 +45,5 @@ architecture Behavioral of InstrMemProgrammable is
     signal data : InstrMemArr := init_intr_mem;
 
 begin
-    RD <= data(to_integer(unsigned(A)));
+    RD <= data(to_integer(unsigned(A(31 downto 2))));
 end Behavioral;
