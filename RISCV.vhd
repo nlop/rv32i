@@ -246,7 +246,7 @@ begin
                   PCtargetE when "10",
                   PCplus4F when others;
     -- PC flush
-    pcFlushDE <= (wpcSel(0) and controlE(5)) or (wpcSel(0) and (breE xor controlE(14))); 
+    pcFlushDE <= (not wpcSel(2)) and (((not wpcSel(1)) and wpcSel(0) and (breE xor controlE(14))) or (wpcSel(1) and (not wpcSel(0)) and controlE(5)));
     pcFlushD <= (not wpcSel(2)) and ((wpcSel(1) and wpcSel(0) and (not jmpSrcD)) or ((not wpcSel(1)) and (not wpcSel(0)) and takeD)); 
     -- PC+imm adder
     PCtargetD <= pcD + immExtD;    
@@ -415,7 +415,7 @@ begin
     brp: BranchPredictor port map(
         CLK => CLK,
         CLR => CLR,
-        WE => BrD,
+        WE => controlE(3),
         taken => breE,
         take => takeD);
     branchTakeD <= takeD and BrD;
