@@ -45,15 +45,27 @@ top1: Top port map(
                       writeData => writeData,
                       dataAddr => dataAddr,
                       memWrite => memWrite);
+-- riscvtest.txt test
+--
+-- test: process(CLK) begin
+--     if (CLK'event and CLK = '0' and memWrite = '1') then
+--         if (dataAddr = x"0000007C" and writeData = x"00000019") then
+--             report "No error: Simulation succeded" severity note;
+--         elsif (dataAddr /= x"00000060") then
+--             report "Simulation failed!" severity failure;
+--         end if;
+--     end if;
+-- end process;
 
-test: process(CLK) begin
-    if (CLK'event and CLK = '0' and memWrite = '1') then
-        if (dataAddr = x"0000007C" and writeData = x"00000019") then
-            report "No error: Simulation succeded" severity note;
-        elsif (dataAddr /= x"00000060") then
-            report "Simulation failed!" severity failure;
-        end if;
-    end if;
-end process;
+-- Branch predictor test
+-- test: process(CLK) begin
+--     if (CLK'event and CLK = '0' and memWrite = '1') then
+--         if (dataAddr = x"00000060" and writeData = x"000013ba") then
+--             report "No error: Simulation succeded" severity note;
+--         elsif (dataAddr /= x"0000005C") then
+--             report "Simulation failed!" severity failure;
+--         end if;
+--     end if;
+-- end process;
 
 end Behavioral;

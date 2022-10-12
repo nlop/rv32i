@@ -74,6 +74,7 @@ architecture Behavioral of InstrMem is
     constant F3_XOR : std_logic_vector(2 downto 0) := "100";
     constant F3_OR : std_logic_vector(2 downto 0) := "110";
     constant F3_NE : std_logic_vector(2 downto 0) := "001";
+    constant F3_LT : std_logic_vector(2 downto 0) := "100";
     constant F3_SL : std_logic_vector(2 downto 0) := "001";
     constant F3_SR : std_logic_vector(2 downto 0) := "101";
     -- Immediate strings
@@ -83,12 +84,21 @@ architecture Behavioral of InstrMem is
     constant IMM_0x004 : std_logic_vector(11 downto 0) := x"004";
     constant IMM_0x006 : std_logic_vector(11 downto 0) := x"006";
     constant IMM_0x008 : std_logic_vector(11 downto 0) := x"008";
-    constant IMM_5_0x8 : std_logic_vector(4 downto 0) := "01000";
+    constant IMM_0x009 : std_logic_vector(11 downto 0) := x"009";
+    constant IMM_0x060 : std_logic_vector(11 downto 0) := x"060";
+    constant IMM_0x065 : std_logic_vector(11 downto 0) := x"065";
+    constant IMM_0x100 : std_logic_vector(11 downto 0) := x"100";
+    constant IMM_0x108 : std_logic_vector(11 downto 0) := x"108";
     constant IMM_0x700 : std_logic_vector(11 downto 0) := x"700";
     constant IMM_0xfff : std_logic_vector(11 downto 0) := x"fff";
     constant IMM_0x835 : std_logic_vector(11 downto 0) := x"835";
-    constant IMM_H_008 : std_logic_vector(6 downto 0) := "0000000";
-    constant IMM_L_008 : std_logic_vector(4 downto 0) := "01000";
+    constant IMM_5_0x8 : std_logic_vector(4 downto 0) := "01000";
+    constant IMM_H_0x000 : std_logic_vector(6 downto 0) := "0000000";
+    constant IMM_L_0x000 : std_logic_vector(4 downto 0) := "00000";
+    constant IMM_H_0x004 : std_logic_vector(6 downto 0) := "0000000";
+    constant IMM_L_0x004 : std_logic_vector(4 downto 0) := "00100";
+    constant IMM_H_0x008 : std_logic_vector(6 downto 0) := "0000000";
+    constant IMM_L_0x008 : std_logic_vector(4 downto 0) := "01000";
     constant IMM_12_N2 : std_logic := '1';
     constant IMM_11_N2 : std_logic := '1';
     constant IMM_H_N2 : std_logic_vector(5 downto 0) := "111111";
@@ -104,36 +114,61 @@ constant data : InstrMemArr := (
     --IMM_0x008 & T2 & F3_SL & T3 & I_OP_019, -- slli t3, t2, 0x08
     -- 
     -- Stall unit demo
-    IMM_0x835 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0x835
-    IMM_H_008 & T0 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t0, 0x008(zero)
-    IMM_0x002 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
-    IMM_0x008 & ZERO & F3_WORD & T1 & I_OP_003, -- lw t1, 0x008(zero)
-    F7_ZERO & T2 & T1 & F3_XOR & T3 & R_OP_051, -- xor t3, t1, t2
-    F7_ZERO & T2 & T1 & F3_SL & T4 & R_OP_051, -- sll t4, t1, t2
-    F7_ZERO & T2 & T1 & F3_OR & T5 & R_OP_051, -- or t5, t1, t2
-    --F7_ONE & T3 & T0 & F3_ADD & T0 & R_OP_051, -- sub t0, t0, t3
-    --IMM_0x700 & ZERO & F3_ADD & T1 & I_OP_019, -- addi t1, zero, 0x700 
-    --IMM_0x002 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
-    --F7_ONE & T3 & T0 & F3_ADD & T0 & R_OP_051, -- sub t0, t0, t3
-    --F7_ZERO & T2 & T1 & F3_ADD & T1 & R_OP_051, -- add t1, t1, t2
-    --IMM_12_N2 & IMM_H_N2 & T0 & ZERO & F3_NE & IMM_L_N2 & IMM_11_N2 & B_OP_099, -- blt t2, zero, -2
-    --IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
-    --IMM_0x008 & ZERO & F3_WORD & T0 & I_OP_003, -- lw t0, 0x008(zero)
-    --NOP,
-    --NOP,
-    --IMM_0x835 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0xf53
-    --IMM_0x002 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
-    --IMM_0x004 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
-    --IMM_0x008 & T0 & F3_SL & T1 & I_OP_019, -- slli t1, t0, 0x08
-    --IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
-    --F7_ONE & T2 & T0 & F3_SR & T1 & R_OP_051, -- sra t1, t0, t2
-    --F7_ONE & IMM_5_0x8 & T0 & F3_SR & T1 & I_OP_019, -- srai t1, t0, 0x08
-    --IMM_H_008 & T1 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t1, 0x008(zero)
-    --IMM_0x008 & ZERO & F3_WORD & T0 & I_OP_003, -- lw t0, 0x008(zero)
-    -- IMM_J_N4 & RA & J_OP_111, -- jal ra, -4
-    -- IMM_0x001 & ZERO & F3_ZERO & RA & I_OP_103,
+    -- IMM_0x835 & ZERO & F3_ADD & T0 & I_OP_019, -- addi t0, zero, 0x835
+    -- IMM_H_008 & T0 & ZERO & F3_WORD & IMM_L_008 & S_OP_035, -- sw t0, 0x008(zero)
+    -- IMM_0x002 & ZERO & F3_ADD & T2 & I_OP_019, -- addi t2, zero, 0x002
+    -- IMM_0x008 & ZERO & F3_WORD & T1 & I_OP_003, -- lw t1, 0x008(zero)
+    -- F7_ZERO & T2 & T1 & F3_XOR & T3 & R_OP_051, -- xor t3, t1, t2
+    -- F7_ZERO & T2 & T1 & F3_SL & T4 & R_OP_051, -- sll t4, t1, t2
+    -- F7_ZERO & T2 & T1 & F3_OR & T5 & R_OP_051, -- or t5, t1, t2
+    
+    -- Branch predictor demo
+    -- IMM_0x000 & ZERO & F3_ADD & T0 & I_OP_019,      -- [00] addi t0, zero, 0x0
+    -- IMM_0x065 & ZERO & F3_ADD & T1 & I_OP_019,      -- [04] addi t1, zero, 0x64
+    -- IMM_0x000 & ZERO & F3_ADD & T2 & I_OP_019,      -- [08] addi t2, zero, 0x0
+    -- IMM_0x060 & ZERO & F3_ADD & T3 & I_OP_019,      -- [0C] addi t3, zero, 0x60
+    -- x"01800" & RA & J_OP_111,                       -- [10] call series
+    -- IMM_H_0x000 & T2 & T3 & F3_WORD & IMM_L_0x000 & S_OP_035, -- [14] sw t2, 0x0(t2)
+    -- NOP, -- [18] end: nop
+    -- x"ffdff" & ZERO & J_OP_111, -- [1C] j nop
+    -- F7_ZERO & T0 & T2 & F3_ADD & T2 & R_OP_051,   -- [20] sum: add t2, t2, t0
+    -- IMM_0x001 & T0 & F3_ADD & T0 & I_OP_019,      -- [24] addi t0, t0, 0x1
+    -- x"f" & "111" & T1 & T0 & F3_LT & "11001" & B_OP_099, -- [28] series: blt t0, t1, sum (-8)
+    -- IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,     -- [2C] ret (jalr, zero, ra, 0x0)
+
+    -- Recursion demo
+    IMM_0x100 & ZERO & F3_ADD & SP & I_OP_019,      -- [00] addi sp, zero, 0x100  # init sp at 0x100
+    IMM_0x108 & ZERO & F3_ADD & S1 & I_OP_019,      -- [04] addi s1, zero, 0x108
+    IMM_0x000 & ZERO & F3_ADD & A0 & I_OP_019,      -- [08] addi a0, zero, 0x000 # a = 0
+    IMM_0x001 & ZERO & F3_ADD & A1 & I_OP_019,      -- [0C] addi a1, zero, 0x001 # b = 1
+    x"014" & ZERO & F3_ADD & A2 & I_OP_019,         -- [10] addi a2, zero, 0x014 # n = 20 (n - 1)
+    x"ff4" & ZERO & F3_ADD & SP & I_OP_019,         -- [14] addi sp, zero, -12
+    IMM_H_0x000 & A0 & SP & F3_WORD & IMM_L_0x000 & S_OP_035, -- [18] sw a0, 0x000(sp) # push arguments onto the stack
+    IMM_H_0x004 & A1 & SP & F3_WORD & IMM_L_0x004 & S_OP_035, -- [1C] sw a1, 0x004(sp)
+    IMM_H_0x008 & A2 & SP & F3_WORD & IMM_L_0x008 & S_OP_035, -- [20] sw a2, 0x008(sp)
+    x"02000" & RA & J_OP_111,                       -- [24] call fibo
+    F7_ZERO & ZERO & A0 & F3_ADD & S2 & R_OP_051,   -- [28] add s2, a0, zero
+    IMM_H_0x000 & S2 & S1 & F3_WORD & IMM_L_0x000 & S_OP_035, -- [2C] sw s2, 0x000(s1) 
+    IMM_0x000 & SP & F3_WORD & A0 & I_OP_003,       -- [30] lw a0, 0x000(sp) # pop arguments from stack
+    IMM_0x004 & SP & F3_WORD & A1 & I_OP_003,       -- [34] lw a1, 0x004(sp)
+    IMM_0x008 & SP & F3_WORD & A2 & I_OP_003,       -- [38] lw a2, 0x008(sp)
+    NOP,                                            -- [3C] done: nop
+    x"ffdff" & ZERO & J_OP_111,                     -- [40] j done
+    x"ffc" & SP & F3_ADD & SP & I_OP_019,           -- [44] fibo: addi sp, sp, -4
+    IMM_H_0x000 & RA & SP & F3_WORD & IMM_L_0x000 & S_OP_035, -- [48] sw a0, 0x000(sp) # push ra onto the stack
+    IMM_0x001 & ZERO & F3_ADD & T0 & I_OP_019,      -- [4C] addi a1, zero, 1
+    F7_ONE & T0 & A2 & F3_ADD & A2 & R_OP_051,      -- [50] sub  a2, a2, t0
+    x"0" & "000" & A2 & ZERO & F3_LT & "10000" & B_OP_099, -- [54] blt zero, a2, rec
+    IMM_0x000 & SP & F3_WORD & RA & I_OP_003,       -- [58] return: lw ra, 0x000(sp)
+    IMM_0x004 & SP & F3_ADD & SP & I_OP_019,        -- [5C] addi sp, sp, 4
+    IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,     -- [60] ret (jalr, zero, ra, 0x0)
+    F7_ZERO & ZERO & A1 & F3_ADD & T1 & R_OP_051,   -- [64] rec: add t1, zero, a1
+    F7_ZERO & A0 & A1 & F3_ADD & A1 & R_OP_051,     -- [68] add a1, a1, a0
+    F7_ZERO & ZERO & T1 & F3_ADD & A0 & R_OP_051,   -- [6C] add a0, zero, t1
+    x"fd5ff" & RA & J_OP_111,                       -- [70] call fibo
+    x"fe5ff" & ZERO & J_OP_111,                     -- [74] j return
     others => NOP
     );
 begin
-    RD <= data(to_integer(unsigned(A)));
+    RD <= data(to_integer(unsigned(A(31 downto 2))));
 end Behavioral;

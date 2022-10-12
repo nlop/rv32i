@@ -30,7 +30,7 @@ architecture Test of Top is
         ramWE : out std_logic);
     end component;
     -- Instruction memory (ROM)
-    component InstrMemProgrammable is
+    component InstrMem is
         generic (
                     N : integer := 32;
                     M : integer := 32;  
@@ -73,7 +73,7 @@ begin
                  fun => funct3,
                  RD => ramRD);
     -- Instruction memory (ROM)
-    rom: InstrMemProgrammable port map (
+    rom: InstrMem port map (
                                            A => pc,
                                            RD => instr);
     -- RISC-V processor

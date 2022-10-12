@@ -18,9 +18,9 @@ begin
     process(CLK)
     begin
         if rising_edge(CLK) then
-            if (CLR = '1') then
+            if CLR = '1' then
                 Q <= (others => '0');
-            elsif (L = '1') then
+            elsif L = '1' then
                 Q <= D;
             end if;
         end if;
