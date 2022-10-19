@@ -110,6 +110,7 @@ architecture Behavioral of RISCV is
     -- >> PC
     signal pcF : std_logic_vector(N - 1 downto 0);
     signal PCplus4F : std_logic_vector(N - 1 downto 0);
+    signal wpcIn : std_logic_vector(N - 1 downto 0);
     -- > Decode
     -- >> Control
     signal controlD_E : std_logic_vector(N_CONTROLSIG_E - 1 downto 0);
@@ -136,8 +137,9 @@ architecture Behavioral of RISCV is
     -- >> Register file
     signal RD1 : std_logic_vector(N -1 downto 0);
     signal RD2 : std_logic_vector(N -1 downto 0);
-    -- >> Branch predictor
-    signal branchTakeD, takeD : std_logic;
+    signal pcSrcE : std_logic;
+    -- >> Flush
+    signal flushD : std_logic;
     -- > Execute 
     -- >> Register file
     signal rdE : std_logic_vector(M - 1 downto 0);
@@ -161,6 +163,7 @@ architecture Behavioral of RISCV is
     signal immExtE : std_logic_vector(N - 1 downto 0);
     -- >> PC
     signal PCplus4E : std_logic_vector(N - 1 downto 0);
+    signal jmpTargetE : std_logic_vector(N - 1 downto 0);
     signal PCtargetE : std_logic_vector(N - 1 downto 0);
     -- > Memory
     -- >> Control
@@ -175,6 +178,8 @@ architecture Behavioral of RISCV is
     signal PCtargetM : std_logic_vector(N - 1 downto 0);
     -- >> ALU
     signal aluResultM : std_logic_vector(N - 1 downto 0);
+    -- >> Flush
+    signal flushE : std_logic;
     -- > Writeback
     -- >> Control
     signal controlW : std_logic_vector(N_CONTROLSIG_W - 1 downto 0);
@@ -195,18 +200,6 @@ architecture Behavioral of RISCV is
     -- >> Stall unit
     signal notStallF, notStallD, stallFlushE, stallResSrc : std_logic;
     -- >> Branching
-    signal flushD : std_logic;
-    signal flushE : std_logic;
-    -- >> TEMP
-    signal wpcBrD : std_logic_vector(N - 1 downto 0);
-    signal wpcBrE : std_logic_vector(N - 1 downto 0);
-    signal selWpcBreE : std_logic_vector(1 downto 0);
-    signal wpcJmpD : std_logic_vector(N - 1 downto 0);
-    signal wpcJmpE : std_logic_vector(N - 1 downto 0);
-    signal wpcIn : std_logic_vector(N - 1 downto 0);
-    signal wpcSel : std_logic_vector(2 downto 0);
-    signal pcFlushDE : std_logic;
-    signal pcFlushD : std_logic;
 begin
     -- ~CLK
     nCLK <= not CLK;
@@ -232,28 +225,9 @@ begin
                 CLK => CLK,
                 CLR => CLR);
     -- WPC mux
-    wpcSel(2) <= ((brD and JmpD) or ((not brD) and (not JmpD))) and ((controlE(3) and controlE(4)) or ((not controlE(3)) and (not controlE(4))));
-    wpcSel(1) <= ((not controlE(3)) and controlE(4)) or ((JmpD and (not brD)) and (controlE(4) or (not controlE(3))));
-    wpcSel(0) <= (controlE(3) and (not controlE(4))) or (((not brD) and JmpD) and (controlE(3) or (not controlE(4))));
-    wpcmux: with wpcSel select
-        wpcIn <= wpcBrD when "000",
-                 wpcBrE when "001",
-                 wpcJmpD when "011",
-                 wpcJmpE when "010",
-                 PCplus4F when others;
-    -- WPC sources
-    wpcBrD <= PCtargetD when takeD = '1' else PCplus4F;
-    wpcJmpD <= PCtargetD when jmpSrcD = '0' else PCplus4F;
-    wpcJmpE <= aluResE when controlE(5) = '1' else PCplus4F;
-    selWpcBreE(1) <= breE and (not controlE(14));
-    selWpcBreE(0) <= (not breE) and controlE(14);
-    wpcbremux: with selWpcBreE select
-        wpcBrE <= PCplus4E when "01",
-                  PCtargetE when "10",
-                  PCplus4F when others;
-    -- PC flush
-    pcFlushDE <= (not wpcSel(2)) and (((not wpcSel(1)) and wpcSel(0) and (breE xor controlE(14))) or (wpcSel(1) and (not wpcSel(0)) and controlE(5)));
-    pcFlushD <= (not wpcSel(2)) and ((wpcSel(1) and wpcSel(0) and (not jmpSrcD)) or ((not wpcSel(1)) and (not wpcSel(0)) and takeD)); 
+    jmpTargetE <= PCtargetE when controlE(5) = '0' else aluResE;
+    pcSrcE <= (breE and controlE(3)) or controlE(4);
+    wpcIn <= PCplus4F when pcSrcE = '0' else jmpTargetE;
     -- PC+imm adder
     PCtargetD <= pcD + immExtD;
     -- PC + 4
@@ -330,7 +304,7 @@ begin
     immExtD <= (instrD(31 downto 12) & zeroU) when extSrcD(2) = '1' else extOutD;
 
     -- Control signals
-    controlD_E <= (zeroUSumD & takeD & instrD(30) & instrD(14 downto 12) & regWE3D & resSrcD & ramWeD & jmpSrcD & JmpD & BrD & aluOpD & srcBD);
+    controlD_E <= (zeroUSumD & '0' & instrD(30) & instrD(14 downto 12) & regWE3D & resSrcD & ramWeD & jmpSrcD & JmpD & BrD & aluOpD & srcBD);
     controlE_M <= (controlE(12 downto 10) & controlE(9) & controlE(8 downto 7) & controlE(6));
     controlM_W <= (controlM(3) & controlM(2 downto 1));
 
@@ -438,17 +412,8 @@ begin
                 flushE => stallFlushE);
 
     -- Flush signals
-    flushD <= (pcFlushDE or pcFlushD or CLR) when notStallD = '1' else '0';
-    flushE <= stallFlushE or pcFlushDE or CLR;
-
-    -- Branch predictor
-    brp: BranchPredictor port map(
-                                     CLK => CLK,
-                                     CLR => CLR,
-                                     WE => controlE(3),
-                                     taken => breE,
-                                     take => takeD);
-    branchTakeD <= takeD and BrD;
+    flushD <= pcSrcE or CLR;
+    flushE <= stallFlushE or pcSrcE or CLR;
 
     -- Map output signals
     ramWD <= writeDataM;

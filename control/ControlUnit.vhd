@@ -125,7 +125,7 @@ ctl: process (op) begin
             srcB <= '0';
             regWE3 <= '0';
             ramWE <= '0';
-            resSrc <= "01";
+            resSrc <= "00";
             extSrc <= "000";
             BR <= '0';
             JMP <= '0';
