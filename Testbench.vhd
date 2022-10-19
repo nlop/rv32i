@@ -13,7 +13,7 @@ architecture Behavioral of Testbench is
                    LOG2N : integer := 5;
                    M : integer := 5; -- register file 2^M * N
                    ROM_ADDRS : integer := 32; -- ROM address space
-                   K : integer := 8);
+                   K : integer := 10);
         port(
         CLK, CLR : in std_logic;
         writeData, dataAddr : buffer std_logic_vector(N - 1 downto 0);

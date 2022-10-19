@@ -21,11 +21,13 @@ entity MemoryPipe is
     writeDataE : in std_logic_vector(N - 1 downto 0);
     rdE : in std_logic_vector(M - 1 downto 0);
     PCplus4E : in std_logic_vector(N - 1 downto 0);
+    PCtargetE : in std_logic_vector(N - 1 downto 0);
     controlM : out std_logic_vector(N_CONTROLSIG - 1 downto 0);
     aluResultM : out std_logic_vector(N - 1 downto 0);
     writeDataM : out std_logic_vector(N - 1 downto 0);
     rdM : out std_logic_vector(M - 1 downto 0);
-    PCplus4M : out std_logic_vector(N - 1 downto 0));
+    PCplus4M : out std_logic_vector(N - 1 downto 0);
+    PCtargetM : out std_logic_vector(N - 1 downto 0));
 end MemoryPipe; 
 
 architecture RTL of MemoryPipe is
@@ -51,4 +53,7 @@ begin
              PCplus4Reg: SimpleRegisterReset 
              generic map(N => PCplus4E'LENGTH)
     port map(PCplus4E, PCplus4M, CLR, CLK, L);
+             PCtargetReg: SimpleRegisterReset 
+             generic map(N => PCplus4E'LENGTH)
+    port map(PCtargetE, PCtargetM, CLR, CLK, L);
 end RTL;

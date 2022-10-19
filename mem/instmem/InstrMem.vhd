@@ -25,8 +25,10 @@ architecture Behavioral of InstrMem is
 --    Instrucciones
     constant I_OP_003 : std_logic_vector(6 downto 0) := "0000011";
     constant I_OP_019 : std_logic_vector(6 downto 0) := "0010011";
+    constant U_OP_023 : std_logic_vector(6 downto 0) := "0010111";
     constant S_OP_035 : std_logic_vector(6 downto 0) := "0100011";
     constant R_OP_051 : std_logic_vector(6 downto 0) := "0110011";
+    constant U_OP_055 : std_logic_vector(6 downto 0) := "0110111";
     constant B_OP_099 : std_logic_vector(6 downto 0) := "1100011";
     constant I_OP_103 : std_logic_vector(6 downto 0) := "1100111";
     constant J_OP_111 : std_logic_vector(6 downto 0) := "1101111";
@@ -136,37 +138,126 @@ constant data : InstrMemArr := (
     -- x"f" & "111" & T1 & T0 & F3_LT & "11001" & B_OP_099, -- [28] series: blt t0, t1, sum (-8)
     -- IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,     -- [2C] ret (jalr, zero, ra, 0x0)
 
+    -- U-type instruction demo
+    -- x"abcde" & T0 & U_OP_055,                   -- lui t0, 0xabcde
+    -- IMM_0x835 & T0 & F3_ADD & T0 & I_OP_019,    -- addi t0, zero, 0x835
+    -- NOP,                                        -- end: nop
+    -- x"ffdff" & ZERO & J_OP_111,                 -- j nop
+
     -- Recursion demo
-    IMM_0x100 & ZERO & F3_ADD & SP & I_OP_019,      -- [00] addi sp, zero, 0x100  # init sp at 0x100
-    IMM_0x108 & ZERO & F3_ADD & S1 & I_OP_019,      -- [04] addi s1, zero, 0x108
-    IMM_0x000 & ZERO & F3_ADD & A0 & I_OP_019,      -- [08] addi a0, zero, 0x000 # a = 0
-    IMM_0x001 & ZERO & F3_ADD & A1 & I_OP_019,      -- [0C] addi a1, zero, 0x001 # b = 1
-    x"014" & ZERO & F3_ADD & A2 & I_OP_019,         -- [10] addi a2, zero, 0x014 # n = 20 (n - 1)
-    x"ff4" & ZERO & F3_ADD & SP & I_OP_019,         -- [14] addi sp, zero, -12
-    IMM_H_0x000 & A0 & SP & F3_WORD & IMM_L_0x000 & S_OP_035, -- [18] sw a0, 0x000(sp) # push arguments onto the stack
-    IMM_H_0x004 & A1 & SP & F3_WORD & IMM_L_0x004 & S_OP_035, -- [1C] sw a1, 0x004(sp)
-    IMM_H_0x008 & A2 & SP & F3_WORD & IMM_L_0x008 & S_OP_035, -- [20] sw a2, 0x008(sp)
-    x"02000" & RA & J_OP_111,                       -- [24] call fibo
-    F7_ZERO & ZERO & A0 & F3_ADD & S2 & R_OP_051,   -- [28] add s2, a0, zero
-    IMM_H_0x000 & S2 & S1 & F3_WORD & IMM_L_0x000 & S_OP_035, -- [2C] sw s2, 0x000(s1) 
-    IMM_0x000 & SP & F3_WORD & A0 & I_OP_003,       -- [30] lw a0, 0x000(sp) # pop arguments from stack
-    IMM_0x004 & SP & F3_WORD & A1 & I_OP_003,       -- [34] lw a1, 0x004(sp)
-    IMM_0x008 & SP & F3_WORD & A2 & I_OP_003,       -- [38] lw a2, 0x008(sp)
-    NOP,                                            -- [3C] done: nop
-    x"ffdff" & ZERO & J_OP_111,                     -- [40] j done
-    x"ffc" & SP & F3_ADD & SP & I_OP_019,           -- [44] fibo: addi sp, sp, -4
-    IMM_H_0x000 & RA & SP & F3_WORD & IMM_L_0x000 & S_OP_035, -- [48] sw a0, 0x000(sp) # push ra onto the stack
-    IMM_0x001 & ZERO & F3_ADD & T0 & I_OP_019,      -- [4C] addi a1, zero, 1
-    F7_ONE & T0 & A2 & F3_ADD & A2 & R_OP_051,      -- [50] sub  a2, a2, t0
-    x"0" & "000" & A2 & ZERO & F3_LT & "10000" & B_OP_099, -- [54] blt zero, a2, rec
-    IMM_0x000 & SP & F3_WORD & RA & I_OP_003,       -- [58] return: lw ra, 0x000(sp)
-    IMM_0x004 & SP & F3_ADD & SP & I_OP_019,        -- [5C] addi sp, sp, 4
-    IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,     -- [60] ret (jalr, zero, ra, 0x0)
-    F7_ZERO & ZERO & A1 & F3_ADD & T1 & R_OP_051,   -- [64] rec: add t1, zero, a1
-    F7_ZERO & A0 & A1 & F3_ADD & A1 & R_OP_051,     -- [68] add a1, a1, a0
-    F7_ZERO & ZERO & T1 & F3_ADD & A0 & R_OP_051,   -- [6C] add a0, zero, t1
-    x"fd5ff" & RA & J_OP_111,                       -- [70] call fibo
-    x"fe5ff" & ZERO & J_OP_111,                     -- [74] j return
+    -- IMM_0x100 & ZERO & F3_ADD & SP & I_OP_019,      -- [00] addi sp, zero, 0x100  # init sp at 0x100
+    -- IMM_0x108 & ZERO & F3_ADD & S1 & I_OP_019,      -- [04] addi s1, zero, 0x108
+    -- IMM_0x000 & ZERO & F3_ADD & A0 & I_OP_019,      -- [08] addi a0, zero, 0x000 # a = 0
+    -- IMM_0x001 & ZERO & F3_ADD & A1 & I_OP_019,      -- [0C] addi a1, zero, 0x001 # b = 1
+    -- x"014" & ZERO & F3_ADD & A2 & I_OP_019,         -- [10] addi a2, zero, 0x014 # n = 20 (n - 1)
+    -- x"ff4" & ZERO & F3_ADD & SP & I_OP_019,         -- [14] addi sp, zero, -12
+    -- IMM_H_0x000 & A0 & SP & F3_WORD & IMM_L_0x000 & S_OP_035, -- [18] sw a0, 0x000(sp) # push arguments onto the stack
+    -- IMM_H_0x004 & A1 & SP & F3_WORD & IMM_L_0x004 & S_OP_035, -- [1C] sw a1, 0x004(sp)
+    -- IMM_H_0x008 & A2 & SP & F3_WORD & IMM_L_0x008 & S_OP_035, -- [20] sw a2, 0x008(sp)
+    -- x"02000" & RA & J_OP_111,                       -- [24] call fibo
+    -- F7_ZERO & ZERO & A0 & F3_ADD & S2 & R_OP_051,   -- [28] add s2, a0, zero
+    -- IMM_H_0x000 & S2 & S1 & F3_WORD & IMM_L_0x000 & S_OP_035, -- [2C] sw s2, 0x000(s1) 
+    -- IMM_0x000 & SP & F3_WORD & A0 & I_OP_003,       -- [30] lw a0, 0x000(sp) # pop arguments from stack
+    -- IMM_0x004 & SP & F3_WORD & A1 & I_OP_003,       -- [34] lw a1, 0x004(sp)
+    -- IMM_0x008 & SP & F3_WORD & A2 & I_OP_003,       -- [38] lw a2, 0x008(sp)
+    -- NOP,                                            -- [3C] done: nop
+    -- x"ffdff" & ZERO & J_OP_111,                     -- [40] j done
+    -- x"ffc" & SP & F3_ADD & SP & I_OP_019,           -- [44] fibo: addi sp, sp, -4
+    -- IMM_H_0x000 & RA & SP & F3_WORD & IMM_L_0x000 & S_OP_035, -- [48] sw a0, 0x000(sp) # push ra onto the stack
+    -- IMM_0x001 & ZERO & F3_ADD & T0 & I_OP_019,      -- [4C] addi a1, zero, 1
+    -- F7_ONE & T0 & A2 & F3_ADD & A2 & R_OP_051,      -- [50] sub  a2, a2, t0
+    -- x"0" & "000" & A2 & ZERO & F3_LT & "10000" & B_OP_099, -- [54] blt zero, a2, rec
+    -- IMM_0x000 & SP & F3_WORD & RA & I_OP_003,       -- [58] return: lw ra, 0x000(sp)
+    -- IMM_0x004 & SP & F3_ADD & SP & I_OP_019,        -- [5C] addi sp, sp, 4
+    -- IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,     -- [60] ret (jalr, zero, ra, 0x0)
+    -- F7_ZERO & ZERO & A1 & F3_ADD & T1 & R_OP_051,   -- [64] rec: add t1, zero, a1
+    -- F7_ZERO & A0 & A1 & F3_ADD & A1 & R_OP_051,     -- [68] add a1, a1, a0
+    -- F7_ZERO & ZERO & T1 & F3_ADD & A0 & R_OP_051,   -- [6C] add a0, zero, t1
+    -- x"fd5ff" & RA & J_OP_111,                       -- [70] call fibo
+    -- x"fe5ff" & ZERO & J_OP_111,                     -- [74] j return
+
+    -- Sorting demo
+    x"038" & ZERO & F3_ADD & S1 & I_OP_019,                     -- [000] addi s1, zero, 0x38 # seed for pseudo-rand function
+    x"7d2a1" & S1 & U_OP_055,                                   -- [004] lui s1, 0x7d2a1 
+    x"1ec" & ZERO & F3_ADD & SP & I_OP_019,                     -- [008] addi sp, zero, 0x1fc # init sp
+    x"004" & ZERO & F3_ADD & A0 & I_OP_019,                     -- [00C] addi a0, zero, 0xa # N
+    x"200" & ZERO & F3_ADD & A1 & I_OP_019,                     -- [010] addi a1, zero, 0x200 # start ptr
+    x"ff8" & SP & F3_ADD & SP & I_OP_019,                       -- [014] addi sp, sp, -8
+    IMM_H_0x000 & A0 & SP & F3_WORD & IMM_L_0x000 & S_OP_035,   -- [018] sw a0, 0(sp)
+    IMM_H_0x004 & A1 & SP & F3_WORD & IMM_L_0x004 & S_OP_035,   -- [01C] sw a1, 4(sp)
+    x"03000" & RA & J_OP_111,                                   -- [020] call fill                                                        
+    IMM_0x000 & SP & F3_WORD & A2 & I_OP_003,                   -- [024] lw a0, 0(sp)
+    IMM_0x004 & SP & F3_WORD & A2 & I_OP_003,                   -- [028] lw a1, 4(sp)
+    x"09C00" & RA & J_OP_111,                                   -- [02C] call sort                                                        
+    IMM_0x000 & SP & F3_WORD & A2 & I_OP_003,                   -- [030] lw a0, 0(sp)
+    IMM_0x004 & SP & F3_WORD & A2 & I_OP_003,                   -- [034] lw a1, 4(sp)
+    x"0ec00" & RA & J_OP_111,                                   -- [038] call read                                                        
+    IMM_0x000 & SP & F3_WORD & A2 & I_OP_003,                   -- [03C] lw a0, 0(sp)
+    IMM_0x004 & SP & F3_WORD & A2 & I_OP_003,                   -- [040] lw a1, 4(sp)
+    IMM_0x008 & SP & F3_ADD & SP & I_OP_019,                    -- [044] addi sp, sp, 8
+    NOP,                                                        -- [048] done: nop
+    x"ffdff" & ZERO & J_OP_111,                                 -- [04C] j done
+    x"ff8" & SP & F3_ADD & SP & I_OP_019,                       -- [050] fill: addi sp, sp, -8
+    IMM_H_0x000 & RA & SP & F3_WORD & IMM_L_0x000 & S_OP_035,   -- [054] sw ra, 0(sp)
+    IMM_H_0x004 & A0 & SP & F3_WORD & IMM_L_0x004 & S_OP_035,   -- [058] sw a0, 4(sp)
+    F7_ZERO & A0 & ZERO & F3_ADD & T0 & R_OP_051,               -- [05C] add t0, zero, a0
+    F7_ZERO & A1 & ZERO & F3_ADD & T1 & R_OP_051,               -- [060] add t1, zero, a1
+    x"0" & "000" & T0 & ZERO & F3_LT & "10100" & B_OP_099,      -- [064] for1: blt zero, t0, gen
+    IMM_0x000 & SP & F3_WORD & RA & I_OP_003,                   -- [068] lw ra, 0(sp)
+    IMM_0x004 & SP & F3_WORD & A0 & I_OP_003,                   -- [06C] lw a0, 4(sp)
+    x"008" & SP & F3_ADD & SP & I_OP_019,                       -- [070] addi sp, sp, 8
+    IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,                 -- [074] ret (jalr, zero, ra, 0)
+    x"ff8" & SP & F3_ADD & SP & I_OP_019,                       -- [078] gen: addi sp, sp, -8
+    IMM_H_0x000 & T0 & SP & F3_WORD & IMM_L_0x000 & S_OP_035,   -- [07C] sw t0, 0(sp)
+    IMM_H_0x004 & T1 & SP & F3_WORD & IMM_L_0x004 & S_OP_035,   -- [080] sw t1, 4(sp)
+    x"02000" & RA & J_OP_111,                                   -- [084] call rand                                                        
+    IMM_0x000 & SP & F3_WORD & T0 & I_OP_003,                   -- [088] lw t0, 0(sp)
+    IMM_0x004 & SP & F3_WORD & T1 & I_OP_003,                   -- [08C] lw t1, 4(sp)
+    x"008" & SP & F3_ADD & SP & I_OP_019,                       -- [090] addi sp, sp, 8
+    x"fff" & T0 & F3_ADD & T0 & I_OP_019,                       -- [094] addi t0, t0, -1
+    IMM_H_0x000 & A0 & T1 & F3_WORD & IMM_L_0x000 & S_OP_035,   -- [098] sw a0, 0(t1)
+    IMM_0x004 & T1 & F3_ADD & T1 & I_OP_019,                    -- [09C] addi t1, t1, 4
+    x"fc5ff" & ZERO & J_OP_111,                                 -- [0A0] j for1
+    x"00c" & S1 & F3_SR & T0 & I_OP_019,                        -- [0A4] rand: srli t0, s1, 12 
+    F7_ZERO & S1 & T0 & F3_XOR & T0 & R_OP_051,                 -- [0A8] xor t0, t0, s1
+    x"019" & T0 & F3_SL & T1 & I_OP_019,                        -- [0AC] slli t1, t0, 25 
+    F7_ZERO & T1 & T0 & F3_XOR & T0 & R_OP_051,                 -- [0B0] xor t0, t0, t1
+    x"01b" & T0 & F3_SR & T1 & I_OP_019,                        -- [0B4] srli t1, t0, 27 
+    F7_ZERO & T1 & T0 & F3_XOR & T0 & R_OP_051,                 -- [0B8] xor t0, t0, t1
+    F7_ZERO & T0 & ZERO & F3_ADD & S1 & R_OP_051,               -- [0BC] add s1, zero, t0
+    F7_ZERO & T0 & ZERO & F3_ADD & A0 & R_OP_051,               -- [0C0] add a0, zero, t0
+    IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,                 -- [0C4] ret (jalr, zero, ra, 0)
+    x"ff8" & SP & F3_ADD & SP & I_OP_019,                       -- [0C8] sort: addi sp, sp, -8
+    IMM_H_0x000 & S1 & SP & F3_WORD & IMM_L_0x000 & S_OP_035,   -- [0CC] sw s1, 0(sp) # push s1, s2 onto the stack
+    IMM_H_0x004 & S2 & SP & F3_WORD & IMM_L_0x004 & S_OP_035,   -- [0D0] sw s2, 4(sp)
+    F7_ZERO & A0 & ZERO & F3_ADD & S1 & R_OP_051,               -- [0D4] add s1, zero, a0 # s1 = N
+    F7_ZERO & A1 & ZERO & F3_ADD & S2 & R_OP_051,               -- [0D8] add s2, zero, a1 # s2 = A (ptr)
+    IMM_0x000 & ZERO & F3_ADD & T0 & I_OP_019,                  -- [0DC] redo: addi t0, zero, 0 # swap = 0
+    IMM_0x001 & ZERO & F3_ADD & T1 & I_OP_019,                  -- [0E0] addi t1, zero, 1
+    x"0" & "000" & A1 & T1 & F3_LT & "11000" & B_OP_099,        -- [0E4] for2: blt t1, a1, fb
+    x"f" & "111" & ZERO & T0 & F3_NE & "10101"  & B_OP_099,     -- [0E8] do: bne t0, zero, redo
+    IMM_0x000 & SP & F3_WORD & S1 & I_OP_003,                   -- [0EC] lw s1, 0(sp)
+    IMM_0x004 & SP & F3_WORD & S2 & I_OP_003,                   -- [0F0] lw s2, 4(sp)
+    IMM_0x008 & SP & F3_ADD & SP & I_OP_019,                    -- [0F4] addi sp, sp, 8
+    IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,                 -- [0F8] ret (jalr, zero, ra, 0)
+    IMM_0x000 & S2 & F3_WORD & T3 & I_OP_003,                   -- [0FC] fb: lw t3, 0(s2) # A[n - 1]
+    IMM_0x004 & S2 & F3_WORD & T4 & I_OP_003,                   -- [100] lw t4, 4(s2) # A[n]
+    x"0" & "000" & T4 & T3 & F3_LT & "10000" & B_OP_099,        -- [104] blt t4, t3, swp
+    IMM_0x004 & S2 & F3_ADD & S2 & I_OP_019,                    -- [108] iadd: addi s2, s2, 4
+    IMM_0x001 & T1 & F3_ADD & T1 & I_OP_019,                    -- [10C] addi t1, t1, 1
+    x"fd5ff" & ZERO & J_OP_111,                                 -- [110] j for2
+    IMM_H_0x000 & T4 & S2 & F3_WORD & IMM_L_0x000 & S_OP_035,   -- [114] swp: sw t4, 0(s2)
+    IMM_H_0x004 & T3 & S2 & F3_WORD & IMM_L_0x004 & S_OP_035,   -- [118] sw t3, 4(s2)
+    IMM_0x001 & ZERO & F3_ADD & T0 & I_OP_019,                  -- [11C] addi t0, zero, 1 # swap = 1
+    x"fe9ff" & ZERO & J_OP_111,                                 -- [120] j iadd
+    IMM_0x000 & ZERO & F3_ADD & T0 & I_OP_019,                  -- [124] read: addi t0, zero, 0
+    F7_ZERO & A1 & ZERO & F3_ADD & T1 & R_OP_051,               -- [128] add t1, zero, a0
+    x"0" & "000" & T0 & A0 & F3_LT & "01000"  & B_OP_099,       -- [12C] for3: blt a0, t0, re1
+    IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,                 -- [130] ret (jalr, zero, ra, 0)
+    IMM_0x000 & T3 & F3_WORD & T1 & I_OP_003,                   -- [134] re1: lw t3, 0(t1) # A[n]
+    IMM_0x004 & T1 & F3_ADD & T1 & I_OP_019,                    -- [138] addi t1, t1, 4
+    IMM_0x001 & T0 & F3_ADD & T0 & I_OP_019,                    -- [13C] addi t0, t0, 1
+    x"fedff" & ZERO & J_OP_111,                                 -- [144] j for3
     others => NOP
     );
 begin

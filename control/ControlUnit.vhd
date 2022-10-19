@@ -9,7 +9,7 @@ entity ControlUnit is
              regWE3 : out std_logic;
              ramWE : out std_logic;
              resSrc : out std_logic_vector(1 downto 0);
-             extSrc : out std_logic_vector(1 downto 0);
+             extSrc : out std_logic_vector(2 downto 0);
              BR : out std_logic;
              JMP : out std_logic;
             jmpSrc : out std_logic);
@@ -28,7 +28,7 @@ ctl: process (op) begin
             regWE3 <= '1';
             ramWE <= '0';
             resSrc <= "01";
-            extSrc <= "00";
+            extSrc <= "000";
             BR <= '0';
             JMP <= '0';
             jmpSrc <= '0';
@@ -39,7 +39,18 @@ ctl: process (op) begin
             regWE3 <= '1';
             ramWE <= '0';
             resSrc <= "00";
-            extSrc <= "00";
+            extSrc <= "000";
+            BR <= '0';
+            JMP <= '0';
+            jmpSrc <= '0';
+        -- Type U op = 23
+        when "0010111" =>
+            aluOP <= "00";  
+            srcB <= '0';
+            regWE3 <= '1';
+            ramWE <= '0';
+            resSrc <= "11";
+            extSrc <= "100";
             BR <= '0';
             JMP <= '0';
             jmpSrc <= '0';
@@ -50,7 +61,7 @@ ctl: process (op) begin
             regWE3 <= '0';
             ramWE <= '1';
             resSrc <= "01";
-            extSrc <= "01";
+            extSrc <= "001";
             BR <= '0';
             JMP <= '0';
             jmpSrc <= '0';
@@ -61,7 +72,18 @@ ctl: process (op) begin
             regWE3 <= '1';
             ramWE <= '0';
             resSrc <= "00";
-            extSrc <= "00";
+            extSrc <= "000";
+            BR <= '0';
+            JMP <= '0';
+            jmpSrc <= '0';
+        -- Type U op = 55
+        when "0110111" =>
+            aluOP <= "00";  
+            srcB <= '0';
+            regWE3 <= '1';
+            ramWE <= '0';
+            resSrc <= "00";
+            extSrc <= "101";
             BR <= '0';
             JMP <= '0';
             jmpSrc <= '0';
@@ -72,7 +94,7 @@ ctl: process (op) begin
             regWE3 <= '0';
             ramWE <= '0';
             resSrc <= "00";
-            extSrc <= "10";
+            extSrc <= "010";
             BR <= '1';
             JMP <= '0';
             jmpSrc <= '0';
@@ -83,7 +105,7 @@ ctl: process (op) begin
             regWE3 <= '1';
             ramWE <= '0';
             resSrc <= "00";
-            extSrc <= "00";
+            extSrc <= "000";
             BR <= '0';
             JMP <= '1';
             jmpSrc <= '1';
@@ -94,7 +116,7 @@ ctl: process (op) begin
             regWE3 <= '1';
             ramWE <= '0';
             resSrc <= "10";
-            extSrc <= "11";
+            extSrc <= "011";
             BR <= '0';
             JMP <= '1';
             jmpSrc <= '0';
@@ -104,7 +126,7 @@ ctl: process (op) begin
             regWE3 <= '0';
             ramWE <= '0';
             resSrc <= "01";
-            extSrc <= "00";
+            extSrc <= "000";
             BR <= '0';
             JMP <= '0';
             jmpSrc <= '0';

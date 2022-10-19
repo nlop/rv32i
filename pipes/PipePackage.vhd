@@ -18,8 +18,8 @@ package PipePackage is
     component ExecutePipe is
         generic(N : integer := 32;
                 M : integer := 5;
-                N_CONTROLSIG : integer := 15);
-    port(
+                N_CONTROLSIG : integer := 16);
+        port(
         CLK, CLR, L : in std_logic;
         controlD : in std_logic_vector(N_CONTROLSIG - 1 downto 0);
         Rd1D : in std_logic_vector(N - 1 downto 0);
@@ -52,11 +52,13 @@ package PipePackage is
         writeDataE : in std_logic_vector(N - 1 downto 0);
         rdE : in std_logic_vector(M - 1 downto 0);
         PCplus4E : in std_logic_vector(N - 1 downto 0);
+        PCtargetE : in std_logic_vector(N - 1 downto 0);
         controlM : out std_logic_vector(N_CONTROLSIG - 1 downto 0);
         aluResultM : out std_logic_vector(N - 1 downto 0);
         writeDataM : out std_logic_vector(N - 1 downto 0);
         rdM : out std_logic_vector(M - 1 downto 0);
-        PCplus4M : out std_logic_vector(N - 1 downto 0));
+        PCplus4M : out std_logic_vector(N - 1 downto 0);
+        PCtargetM : out std_logic_vector(N - 1 downto 0));
     end component; 
 
     component WritebackPipe is
@@ -70,11 +72,13 @@ package PipePackage is
         ramRdM : in std_logic_vector(N - 1 downto 0);
         rdM : in std_logic_vector(M - 1 downto 0);
         PCplus4M : in std_logic_vector(N - 1 downto 0);
+        PCtargetM : in std_logic_vector(N - 1 downto 0);
         controlW : out std_logic_vector(N_CONTROLSIG - 1 downto 0);
         aluResultW : out std_logic_vector(N - 1 downto 0);
         ramRdW : out std_logic_vector(N - 1 downto 0);
         rdW : out std_logic_vector(M - 1 downto 0);
-        PCplus4W : out std_logic_vector(N - 1 downto 0));
+        PCplus4W : out std_logic_vector(N - 1 downto 0);
+        PCtargetW : out std_logic_vector(N - 1 downto 0));
     end component;
 
 end PipePackage;

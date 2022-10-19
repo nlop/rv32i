@@ -17,11 +17,13 @@ entity WritebackPipe is
     ramRdM : in std_logic_vector(N - 1 downto 0);
     rdM : in std_logic_vector(M - 1 downto 0);
     PCplus4M : in std_logic_vector(N - 1 downto 0);
+    PCtargetM : in std_logic_vector(N - 1 downto 0);
     controlW : out std_logic_vector(N_CONTROLSIG - 1 downto 0);
     aluResultW : out std_logic_vector(N - 1 downto 0);
     ramRdW : out std_logic_vector(N - 1 downto 0);
     rdW : out std_logic_vector(M - 1 downto 0);
-    PCplus4W : out std_logic_vector(N - 1 downto 0));
+    PCplus4W : out std_logic_vector(N - 1 downto 0);
+    PCtargetW : out std_logic_vector(N - 1 downto 0));
 end WritebackPipe;
 
 architecture RTL of WritebackPipe is
@@ -47,4 +49,7 @@ begin
              PCplus4Reg: SimpleRegisterReset 
              generic map(N => PCplus4M'LENGTH)
     port map(PCplus4M, PCplus4W, CLR, CLK, L);
+             PCtargetReg: SimpleRegisterReset 
+             generic map(N => PCplus4M'LENGTH)
+    port map(PCtargetM, PCtargetW, CLR, CLK, L);
 end RTL;

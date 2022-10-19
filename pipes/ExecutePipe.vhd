@@ -1,10 +1,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
--- Decode stage pipe.
+-- Execute stage pipe.
 --
 -- Control signals:
 --
+-- control(15) := zeroUsum
 -- control(14) := take (takeD, branch predictor)
 -- control(13) := funct7(5)
 -- control(12:10) := funct3
@@ -20,7 +21,7 @@ use ieee.std_logic_1164.all;
 entity ExecutePipe is
     generic(N : integer := 32;
         M : integer := 5;
-           N_CONTROLSIG : integer := 15);
+           N_CONTROLSIG : integer := 16);
     port(
         CLK, CLR, L : in std_logic;
         controlD : in std_logic_vector(N_CONTROLSIG - 1 downto 0);
