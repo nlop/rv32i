@@ -82,7 +82,7 @@ begin
                             data(to_integer(unsigned(Addr_a(i)))) <=  WDA_a(i);
                         end loop;
                     when "000" => 
-                        data(to_integer(unsigned(addr))) <= WDA_a(0);       
+                        data(to_integer(unsigned(Addr_a(0)))) <= WDA_a(0);       
                     when others =>
                         for i in 0 to N/B - 1 loop
                             data(to_integer(unsigned(Addr_a(i)))) <=  WDA_a(i);
