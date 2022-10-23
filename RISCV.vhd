@@ -103,6 +103,13 @@ architecture Behavioral of RISCV is
         CLK, CLR, WE, taken : in std_logic;
         take : out std_logic);
     end component;
+    -- PC controller
+    component PCController is
+    port (
+    jmpD, brD, takeD, brE, breE, takeE : in std_logic;
+    wpcSel : out std_logic_vector(1 downto 0);
+    flushD, flushE : out std_logic);
+    end component;
     -- === Signals ===
     -- ~CLK
     signal nCLK : std_logic;
@@ -111,6 +118,9 @@ architecture Behavioral of RISCV is
     signal pcF : std_logic_vector(N - 1 downto 0);
     signal PCplus4F : std_logic_vector(N - 1 downto 0);
     signal wpcIn : std_logic_vector(N - 1 downto 0);
+    signal wpcSel : std_logic_vector(1 downto 0);
+    -- >> Flush
+    signal pcFlushD, pcFlushE : std_logic;
     -- > Decode
     -- >> Control
     signal controlD_E : std_logic_vector(N_CONTROLSIG_E - 1 downto 0);
@@ -122,7 +132,6 @@ architecture Behavioral of RISCV is
     signal srcBD : std_logic;
     signal resSrcD : std_logic_vector(1 downto 0);
     signal BrD : std_logic;
-    signal BreD : std_logic;
     signal JmpD : std_logic;
     signal jmpSrcD : std_logic;
     -- >> Extender
@@ -134,6 +143,8 @@ architecture Behavioral of RISCV is
     signal PCtargetD : std_logic_vector(N - 1 downto 0);
     signal pcD : std_logic_vector(N - 1 downto 0);
     signal PCplus4D : std_logic_vector(N - 1 downto 0);
+    -- >> Branch predictor
+    signal takeD : std_logic;
     -- >> Register file
     signal RD1 : std_logic_vector(N -1 downto 0);
     signal RD2 : std_logic_vector(N -1 downto 0);
@@ -225,11 +236,14 @@ begin
                 CLK => CLK,
                 CLR => CLR);
     -- WPC mux
-    jmpTargetE <= PCtargetE when controlE(5) = '0' else aluResE;
-    pcSrcE <= (breE and controlE(3)) or controlE(4);
-    wpcIn <= PCplus4F when pcSrcE = '0' else jmpTargetE;
+    wpcmux: with wpcSel select
+        wpcIn <= PCtargetD when "00",
+                 PCtargetE when "01",
+                 PCplus4E when "11",
+                 PCplus4F when others;
+
     -- PC+imm adder
-    PCtargetD <= pcD + immExtD;
+    PCtargetD <= (pcD + immExtD) when jmpSrcD = '0' else (RD1 + immExtD);
     -- PC + 4
     PCplus4F <= pcF + 4;
     -- Register file instance
@@ -304,7 +318,7 @@ begin
     immExtD <= (instrD(31 downto 12) & zeroU) when extSrcD(2) = '1' else extOutD;
 
     -- Control signals
-    controlD_E <= (zeroUSumD & '0' & instrD(30) & instrD(14 downto 12) & regWE3D & resSrcD & ramWeD & jmpSrcD & JmpD & BrD & aluOpD & srcBD);
+    controlD_E <= (zeroUSumD & takeD & instrD(30) & instrD(14 downto 12) & regWE3D & resSrcD & ramWeD & jmpSrcD & JmpD & BrD & aluOpD & srcBD);
     controlE_M <= (controlE(12 downto 10) & controlE(9) & controlE(8 downto 7) & controlE(6));
     controlM_W <= (controlM(3) & controlM(2 downto 1));
 
@@ -412,8 +426,31 @@ begin
                 flushE => stallFlushE);
 
     -- Flush signals
-    flushD <= pcSrcE or CLR;
-    flushE <= stallFlushE or pcSrcE or CLR;
+    -- pcFlushD <= (not wpcSel(1)) and (not wpcSel(0));
+    -- pcFlushDE <= wpcSel(0);
+    flushD <= (pcFlushD and (not stallFlushE)) or CLR;
+    flushE <= stallFlushE or pcFlushE or CLR;
+
+    -- Branch predictor
+    bp: BranchPredictor port map(
+        CLK => CLK,
+        CLR => CLR,
+        WE => controlE(3),
+        taken => breE,
+        take => takeD);
+
+    -- PC control
+    pcon: PCController port map(
+        jmpD => JmpD,
+        brD => BrD,
+        takeD => takeD,
+        brE => controlE(3),
+        breE => breE,
+        takeE => controlE(14),
+        wpcSel => wpcSel,
+        flushD => pcFlushD,
+        flushE => pcFlushE);
+
 
     -- Map output signals
     ramWD <= writeDataM;

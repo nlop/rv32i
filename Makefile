@@ -7,7 +7,7 @@ SHELL=/bin/bash
 .SHELLFLAGS=-O extglob -c
 GHDL=ghdl
 GHDLFLAGS=-fsynopsys
-GHDLRUNFLAGS=--wave=testbench.ghw --stop-time=10us
+GHDLRUNFLAGS=--wave=testbench.ghw --stop-time=6us
 
 # Default target
 all: top
@@ -19,7 +19,7 @@ testbench: top Testbench.o
 top: riscv Top.o
 	$(GHDL) -e $(GHDLFLAGS) $@
 
-riscv: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o /usr/lib/ghdl/ieee/v93/std_logic_arith.o /usr/lib/ghdl/ieee/v93/std_logic_unsigned.o ALUPackage.o PipePackage.o RISCV.o ControlUnit.o BranchPredictor.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o InstrMemProgrammable.o InstrMem.o /usr/lib/ghdl/ieee/v93/std_logic_signed.o PC.o RegisterFile.o ALUNbits.o DecodePipe.o ExecutePipe.o MemoryPipe.o WritebackPipe.o ConditionChecker.o RAM.o Extender.o DemuxGeneric93.o ForwardingUnit.o StallUnit.o BarrelShifter.o MuxGeneric93.o SimpleRegister.o SimpleRegisterReset.o ALUBit.o sumaBit.o
+riscv: /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o /usr/lib/ghdl/ieee/v93/std_logic_arith.o /usr/lib/ghdl/ieee/v93/std_logic_unsigned.o ALUPackage.o PipePackage.o RISCV.o ControlUnit.o PCController.o BranchPredictor.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o InstrMemProgrammable.o InstrMem.o /usr/lib/ghdl/ieee/v93/std_logic_signed.o PC.o RegisterFile.o ALUNbits.o DecodePipe.o ExecutePipe.o MemoryPipe.o WritebackPipe.o ConditionChecker.o RAM.o Extender.o DemuxGeneric93.o ForwardingUnit.o StallUnit.o BarrelShifter.o MuxGeneric93.o SimpleRegister.o SimpleRegisterReset.o ALUBit.o sumaBit.o
 	$(GHDL) -e $(GHDLFLAGS) $@
 
 # Run target
@@ -52,6 +52,8 @@ RISCV.o: RISCV.vhd
 ControlUnit.o: control/ControlUnit.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 BranchPredictor.o: control/BranchPredictor.vhd
+	$(GHDL) -a $(GHDLFLAGS) $<
+PCController.o: control/PCController.vhd
 	$(GHDL) -a $(GHDLFLAGS) $<
 /usr/lib/ghdl/ieee/v93/numeric_std.o: /usr/lib/ghdl/ieee/v93/../../src/ieee/v93/numeric_std.vhdl
 	@echo "This file was not locally built ($<)"
@@ -117,6 +119,7 @@ Top.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic
 Testbench.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/std_logic_1164-body.o
 ControlUnit.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 BranchPredictor.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
+PCController.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 /usr/lib/ghdl/ieee/v93/numeric_std.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o
 /usr/lib/ghdl/ieee/v93/numeric_std-body.o:  /usr/lib/ghdl/ieee/v93/numeric_std.o
 InstrMemProgrammable.o:  /usr/lib/ghdl/ieee/v93/std_logic_1164.o /usr/lib/ghdl/ieee/v93/numeric_std.o /usr/lib/ghdl/ieee/v93/numeric_std-body.o
