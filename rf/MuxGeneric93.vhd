@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
--- Generic 2^PORTS : 1 multiplexer with N bit output compatible with VHDL-93
+-- Generic 2^PORTS : 1 multiplexer with N bits output compatible with VHDL-93
 entity MuxGeneric93 is 
     generic (
                 N : integer := 16;

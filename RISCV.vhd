@@ -426,9 +426,9 @@ begin
                 flushE => stallFlushE);
 
     -- Flush signals
-    -- pcFlushD <= (not wpcSel(1)) and (not wpcSel(0));
-    -- pcFlushDE <= wpcSel(0);
     flushD <= (pcFlushD and (not stallFlushE)) or CLR;
+    --          ^^^ hack to keep instruction in IF/ID when the processor 
+    --              is stalling due memory loading (lwStall = 1)
     flushE <= stallFlushE or pcFlushE or CLR;
 
     -- Branch predictor
@@ -450,7 +450,6 @@ begin
         wpcSel => wpcSel,
         flushD => pcFlushD,
         flushE => pcFlushE);
-
 
     -- Map output signals
     ramWD <= writeDataM;
