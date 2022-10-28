@@ -28,7 +28,6 @@ architecture Behavioral of RAM is
 
     signal data : RamBank;
     signal addr : std_logic_vector(N - 1 downto 0);
-    signal addr_Zero : std_logic_vector(N - K - 1 downto 0);
     signal RDA_full : std_logic_vector(N - 1 downto 0);
     signal RDA_half: std_logic_vector(N/2 - 1 downto 0);
     signal RDA_byte : std_logic_vector(B - 1 downto 0);
@@ -41,7 +40,6 @@ architecture Behavioral of RAM is
 
 begin
     -- Adjust A signal to K bits
-    addr_Zero <= (others => '0');
     iaddr: for i in 0 to (N/B - 1) generate
         Addr_a(i) <= A(K - 1 downto 0) + i;
     end generate;
