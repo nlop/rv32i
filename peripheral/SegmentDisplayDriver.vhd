@@ -35,7 +35,7 @@ architecture Behavioral of SegmentDisplayDriver is
     component BCD is
     generic(N: integer := 2);
     port(
-        CLK, CLR : in std_logic,
+        CLK, CLR : in std_logic;
         Q : out std_logic_vector(N - 1 downto 0));
     end component;
     -- Demux
@@ -69,13 +69,16 @@ architecture Behavioral of SegmentDisplayDriver is
     signal ringCount : std_logic_vector(3 downto 0);
     signal dregOut : std_logic_vector((4*4) - 1 downto 0);
     signal dregMuxOut : std_logic_vector(3 downto 0);
-    signal anOut : std_logic_vector(3 downto 0);
-    signal dispClkQ : std_logic_vector(
+    signal ringOut : std_logic_vector(3 downto 0);
+    signal dispClkQ : std_logic_vector(DIV_CLK - 1 downto 0);
+    signal bcdCount : std_logic_vector(1 downto 0);
 begin
     ringc: RingCounter port map(
-        CLK => CLK,
+        CLK => dispClkQ(DIV_CLK - 1),
         CLR => CLR,
-        Q => ringCount);
+        Q => ringOut);
+
+    AN <= not ringOut;
 
     wedemux: DemuxGeneric93 port map(   
         din => WE,
@@ -83,12 +86,12 @@ begin
         sel => A);
      
     dreg: for i in 0 to 3 generate 
-        SimpleRegister port map(
+        sri: SimpleRegister port map(
             CLK => CLK,
             CLR => CLR,
-            L => weOut(i)
+            L => weOut(i),
             D => WD,
-            Q => dregOut((4 * i + 4) downto (4 * i)));
+            Q => dregOut((4 * i + 4) - 1 downto (4 * i)));
     end generate;
 
     dregmux: MuxGeneric93 port map(
@@ -97,14 +100,9 @@ begin
         sel => bcdCount);
 
     bcdi: BCD port map(
-        CLK => CLK,
-        CLR => CLR,
-        Q => bcdCount);
-
-    ringc: RingCounter port map(
         CLK => dispClkQ(DIV_CLK - 1),
         CLR => CLR,
-        Q => AN);
+        Q => bcdCount);
 
     dige: DigitEncoder port map(
         A => dregMuxOut,
@@ -112,7 +110,7 @@ begin
 
     -- Display CLK
     dclkc: BCD generic map(
-        N => DIV_CLK,
+        N => DIV_CLK)
         port map(
         CLK => CLK,
         CLR => CLR,

@@ -20,7 +20,6 @@ architecture Test of Top is
                    N : integer := 32;
                    LOG2N : integer := 5;
                    M : integer := 5); 
-    -- Ports
         port(
         CLK, CLR : in std_logic;
         ramRD, instr : in std_logic_vector(N - 1 downto 0);

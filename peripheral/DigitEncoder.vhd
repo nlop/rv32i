@@ -11,7 +11,8 @@ end DigitEncoder;
 
 architecture Behavioral of DigitEncoder is
     type DigitMem is array (0 to 15) of std_logic_vector(7 downto 0);
-    constant mem : DigitMem; -- TODO: init 
+    constant mem : DigitMem := ("11111111", others => (others => '0')); -- TODO: init 
+    --                           dgfedcba
 begin
     RD <= mem(to_integer(unsigned(A)));
 end Behavioral;

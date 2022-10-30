@@ -63,7 +63,7 @@ debounce_process : process (CLK_I)
 begin
    if (rising_edge(CLK_I)) then
    for index in 0 to (PORT_WIDTH - 1) loop
-      if (sig_cntrs_ary(index) = CNTR_MAX) then
+      if (ieee.std_logic_1164."="(sig_cntrs_ary(index), CNTR_MAX)) then
          sig_out_reg(index) <= not(sig_out_reg(index));
       end if;
    end loop;
@@ -76,7 +76,7 @@ begin
 	for index in 0 to (PORT_WIDTH - 1) loop
 	
 		if ((sig_out_reg(index) = '1') xor (SIGNAL_I(index) = '1')) then
-			if (sig_cntrs_ary(index) = CNTR_MAX) then
+			if (ieee.std_logic_1164."="(sig_cntrs_ary(index),  CNTR_MAX)) then
 				sig_cntrs_ary(index) <= (others => '0');
 			else
 				sig_cntrs_ary(index) <= sig_cntrs_ary(index) + 1;
