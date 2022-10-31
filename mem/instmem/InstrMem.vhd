@@ -74,8 +74,10 @@ architecture Behavioral of InstrMem is
     constant F3_BYTE : std_logic_vector(2 downto 0) := "000";
     constant F3_UBYTE : std_logic_vector(2 downto 0) := "100";
     constant F3_ADD : std_logic_vector(2 downto 0) := "000";
+    constant F3_AND : std_logic_vector(2 downto 0) := "111";
     constant F3_XOR : std_logic_vector(2 downto 0) := "100";
     constant F3_OR : std_logic_vector(2 downto 0) := "110";
+    constant F3_EQ : std_logic_vector(2 downto 0) := "000";
     constant F3_NE : std_logic_vector(2 downto 0) := "001";
     constant F3_LT : std_logic_vector(2 downto 0) := "100";
     constant F3_SL : std_logic_vector(2 downto 0) := "001";
@@ -151,18 +153,74 @@ constant data : InstrMemArr := (
     -- x"fe5ff" & RA & J_OP_111,                       -- [2C] j for
 
     -- Peripherals demo
-    x"80000" & T0 & U_OP_055,                       -- [00] lui t0, 0x80000
-    IMM_0x000 & T0 & F3_ADD & T0 & I_OP_019,        -- [04] addi t0, t0, 0x000
-    IMM_0x004 & ZERO & F3_ADD & S1 & I_OP_019,      -- [08] addi s1, zero, 0x004
-    IMM_0x000 & T0 & F3_WORD & T1 & I_OP_003,       -- [0C] lw t1, 0(t0) # read BTN
-    x"40000" & T0 & U_OP_055,                       -- [10] lui t0, 0x40000
-    x"000" & T0 & F3_ADD & T0 & I_OP_019,           -- [14] addi t0, zero, 0x000
-    x"00003" & T2 & U_OP_055,                       -- [18] lui t2, 0x00003
-    x"210" & T2 & F3_ADD & T2 & I_OP_019,           -- [1C] addi t2, t2, 0x210
-    IMM_H_0x000 & T2 & T0 & F3_WORD & IMM_L_0x000 & S_OP_035, -- [20] sw t2, 0x0(t0)
-    NOP,                                            -- [24] done: nop
-    x"ffdff" & ZERO & J_OP_111,                     -- [28] j done
-    
+    -- x"80000" & T0 & U_OP_055,                       -- [00] lui t0, 0x80000
+    -- IMM_0x000 & T0 & F3_ADD & T0 & I_OP_019,        -- [04] addi t0, t0, 0x000
+    -- IMM_0x004 & ZERO & F3_ADD & S1 & I_OP_019,      -- [08] addi s1, zero, 0x004
+    -- IMM_0x000 & T0 & F3_WORD & T1 & I_OP_003,       -- [0C] lw t1, 0(t0) # read BTN
+    -- x"40000" & T0 & U_OP_055,                       -- [10] lui t0, 0x40000
+    -- x"000" & T0 & F3_ADD & T0 & I_OP_019,           -- [14] addi t0, zero, 0x000
+    -- x"00003" & T2 & U_OP_055,                       -- [18] lui t2, 0x00003
+    -- x"210" & T2 & F3_ADD & T2 & I_OP_019,           -- [1C] addi t2, t2, 0x210
+    -- IMM_H_0x000 & T2 & T0 & F3_WORD & IMM_L_0x000 & S_OP_035, -- [20] sw t2, 0x0(t0)
+    -- NOP,                                            -- [24] done: nop
+    -- x"ffdff" & ZERO & J_OP_111,                     -- [28] j done
+
+    -- Demo main
+    x"1ec" & ZERO & F3_ADD & SP & I_OP_019,             -- [00] init: addi sp, zero, 0x1fc  # init sp
+    IMM_0x000 & ZERO & F3_ADD & S1 & I_OP_019,          -- [04] addi s1, zero, 0x0    # N
+    IMM_0x000 & ZERO & F3_ADD & S2 & I_OP_019,          -- [08] addi s2, zero, 0x0    # alreadyPushed
+    x"040" & ZERO & F3_ADD & S3 & I_OP_019,             -- [0C] addi s3, zero, 0x40   # max(N)
+    IMM_0x000 & ZERO & F3_ADD & A0 & I_OP_019,          -- [10] addi a0, zero, 0x0
+    x"01800" & RA & J_OP_111,                           -- [14] call disp_write(0)
+    x"01800" & RA & J_OP_111,                           -- [18] loop: call read_btn()
+    F7_ZERO & ZERO & A0 & F3_ADD & T1 & R_OP_051,       -- [1C] add t1, zero, a0
+    x"002" & T1 & F3_AND & T2 & I_OP_019,               -- [20] andi t2, t1, 0x002    # up pushed
+    x"0" & "000" & ZERO & T2 & F3_EQ & "10000" & B_OP_099,  -- [24] beq t2, zero, case_dw
+    x"002" & T2 & F3_AND & T2 & I_OP_019,                   -- [28] andi t2, s2, 0x002    
+    x"0" & "000" & ZERO & T2 & F3_NE & "10000" & B_OP_099   -- [2C] bne t2, zero, case_dw     # up already pushed?
+    x"0" & "000" & S3 & S1 & F3_LT & "10000" & B_OP_099     -- [30] blt s1, s3, n_plus        # N < max(N)?
+    x"01800" & ZERO & J_OP_111                          -- [34] j default
+    IMM_0x001 & S1 & F3_ADD & S1 & I_OP_019,            -- [38] n_plus: addi s1, zero, 1
+    F7_ZERO & ZERO & S1 & F3_ADD & A0 & R_OP_051,       -- [3C] add a0, zero, s1
+    x"01800" & RA & J_OP_111,                           -- [40] call disp_write(s1)
+    x"002" & S2 & F3_OR & S2 & I_OP_019,                -- [44] ori s2, s2, 0x002             # up pushed = 1
+    x"01800" & ZERO & J_OP_111                          -- [48] j default
+    x"010" & T1 & F3_AND & T2 & I_OP_019,               -- [4C] case_dw: andi t2, t1, 0x010   # dw pushed
+    x"0" & "000" & ZERO & T2 & F3_EQ & "10000" & B_OP_099,  -- [50] beq t2, zero, case_r
+    x"010" & T2 & F3_AND & T2 & I_OP_019,                   -- [54] andi t2, s2, 0x010    
+    x"0" & "000" & ZERO & T2 & F3_NE & "10000" & B_OP_099   -- [58] bne t2, zero, case_r      # dw already pushed?
+    x"0" & "000" & S1 & ZERO & F3_LT & "10000" & B_OP_099   -- [5C] blt zero, s1, n_minus     # 0 < N ?
+    x"01800" & ZERO & J_OP_111                          -- [60] j default
+    x"fff" & S1 & F3_ADD & S1 & I_OP_019,               -- [64] n_minus: addi s1, zero, -1
+    F7_ZERO & ZERO & S1 & F3_ADD & A0 & R_OP_051,       -- [68] add a0, zero, s1
+    x"01800" & RA & J_OP_111,                           -- [6C] call disp_write(s1)
+    x"010" & S2 & F3_OR & S2 & I_OP_019,                -- [70] ori s2, s2, 0x002             # up pushed = 1
+    x"01800" & ZERO & J_OP_111                          -- [74] j default
+    x"008" & T1 & F3_AND & T2 & I_OP_019,               -- [78] case_r: andi t2, t1, 0x008   # r pushed
+    x"0" & "000" & ZERO & T2 & F3_EQ & "10000" & B_OP_099,  -- [7C] beq t2, zero, case_c
+    x"008" & T2 & F3_AND & T2 & I_OP_019,                   -- [80] andi t2, s2, 0x008    
+    x"0" & "000" & ZERO & T2 & F3_NE & "10000" & B_OP_099   -- [84] bne t2, zero, case_c      # r already pushed?
+    IMM_0x000 & ZERO & F3_ADD & A0 & I_OP_019,          -- [88] addi a0, zero, 0x0
+    x"01800" & RA & J_OP_111,                           -- [8C] call disp_write(0)
+    NOP,                                                -- [90] TODO: call f(N)
+    NOP,                                                -- [94] call disp_write(a0)
+    x"01800" & ZERO & J_OP_111                          -- [98] j default
+    x"008" & S2 & F3_OR & S2 & I_OP_019,                -- [9C] ori s2, s2, 0x008             # r pushed = 1
+    x"01800" & ZERO & J_OP_111                          -- [A0] j default
+    x"001" & T1 & F3_AND & T2 & I_OP_019,               -- [A4] case_c: andi t2, t1, 0x001    # c pushed
+    x"0" & "000" & ZERO & T2 & F3_EQ & "10000" & B_OP_099,  -- [A8] beq t2, zero, default
+    x"01800" & ZERO & J_OP_111                          -- [AC] j init
+    F7_ZERO & ZERO & S1 & F3_ADD & A0 & R_OP_051,       -- [B0] default: and s2, s2, t1
+    x"01800" & ZERO & J_OP_111                          -- [B4] j loop
+    x"80000" & T0 & U_OP_055,                           -- [B8] read_btn: lui t0, 0x80000
+    IMM_0x000 & T0 & F3_ADD & T0 & I_OP_019,            -- [BC] addi t0, t0, 0x000
+    IMM_0x000 & A0 & F3_WORD & T1 & I_OP_003,           -- [C0] lw a0, 0(t0)                # read BTN
+    IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,         -- [C4] ret (jalr, zero, ra, 0x0)
+    x"40000" & T0 & U_OP_055,                           -- [C8] disp_write: lui t0, 0x40000
+    IMM_0x000 & T0 & F3_ADD & T0 & I_OP_019,            -- [CC] addi t0, t0, 0x000
+    IMM_H_0x000 & T2 & T0 & F3_WORD & IMM_L_0x000 & S_OP_035, -- [0D0] sw a0, 0x0(t0)
+    IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,         -- [D4] ret (jalr, zero, ra, 0x0)
+
     -- Branch predictor demo (factorial n!)
     -- IMM_0x000 & ZERO & F3_ADD & T0 & I_OP_019,      -- [00] addi t0, zero, 0x0
     -- IMM_0x065 & ZERO & F3_ADD & T1 & I_OP_019,      -- [04] addi t1, zero, 0x64
