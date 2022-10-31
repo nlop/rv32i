@@ -17,7 +17,7 @@ architecture Behavioral of MuxGeneric93 is
     signal muxdata : MuxIn;
 begin
     muxi: for i in 0 to (2**PORTS - 1) generate
-        muxdata(i) <= din((N * i + 2**PORTS) - 1 downto N * i);
+        muxdata(i) <= din((N * i + N) - 1 downto N * i);
     end generate;
     dout <= muxdata(to_integer(unsigned(sel)));
 end Behavioral;

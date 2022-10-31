@@ -149,6 +149,19 @@ constant data : InstrMemArr := (
     -- IMM_0x001 & T1 & F3_ADD & T1 & I_OP_019,        -- [24] do: addi t1, t1, 1
     -- IMM_0x002 & T2 & F3_ADD & T2 & I_OP_019,        -- [28] addi t2, t2, 2
     -- x"fe5ff" & RA & J_OP_111,                       -- [2C] j for
+
+    -- Peripherals demo
+    x"80000" & T0 & U_OP_055,                       -- [00] lui t0, 0x80000
+    IMM_0x000 & T0 & F3_ADD & T0 & I_OP_019,        -- [04] addi t0, t0, 0x000
+    IMM_0x004 & ZERO & F3_ADD & S1 & I_OP_019,      -- [08] addi s1, zero, 0x004
+    IMM_0x000 & T0 & F3_WORD & T1 & I_OP_003,       -- [0C] lw t1, 0(t0) # read BTN
+    x"40000" & T0 & U_OP_055,                       -- [10] lui t0, 0x40000
+    x"000" & T0 & F3_ADD & T0 & I_OP_019,           -- [14] addi t0, zero, 0x000
+    x"00003" & T2 & U_OP_055,                       -- [18] lui t2, 0x00003
+    x"210" & T2 & F3_ADD & T2 & I_OP_019,           -- [1C] addi t2, t2, 0x210
+    IMM_H_0x000 & T2 & T0 & F3_WORD & IMM_L_0x000 & S_OP_035, -- [20] sw t2, 0x0(t0)
+    NOP,                                            -- [24] done: nop
+    x"ffdff" & ZERO & J_OP_111,                     -- [28] j done
     
     -- Branch predictor demo (factorial n!)
     -- IMM_0x000 & ZERO & F3_ADD & T0 & I_OP_019,      -- [00] addi t0, zero, 0x0

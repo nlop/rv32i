@@ -3,17 +3,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
 -- Four 7-segment display driver
---      freq(dispCLK) = CLK/DIV_CLK
---      dispCLK must be 1 MHz< dispCLK < 62.5 Hz
 entity SegmentDisplayDriver is
     generic(
         DIV_CLK : integer := 16);
     port(
         CLK, CLR, WE : in std_logic;
         A : in std_logic_vector(1 downto 0);
-        WD : in std_logic_vector(3 downto 0);
+        WD : in std_logic_vector(31 downto 0);
+        fun: in std_logic_vector(2 downto 0); 
         AN : out std_logic_vector(3 downto 0);
-        CX : out std_logic_vector(7 downto 0));
+        CX : out std_logic_vector(6 downto 0));
 end SegmentDisplayDriver;
 
 architecture Behavioral of SegmentDisplayDriver is
@@ -61,17 +60,18 @@ architecture Behavioral of SegmentDisplayDriver is
     component DigitEncoder is
         port(
                 A : in std_logic_vector(3 downto 0);
-                RD : out std_logic_vector(7 downto 0));
+                RD : out std_logic_vector(6 downto 0));
     end component;
-    -- Disp CLK
-    signal dispCLK : std_logic;
-    signal weOut : std_logic_vector(3 downto 0); 
+    signal weDemuxOut : std_logic_vector(3 downto 0); 
+    signal WeOut : std_logic_vector(3 downto 0); 
     signal ringCount : std_logic_vector(3 downto 0);
-    signal dregOut : std_logic_vector((4*4) - 1 downto 0);
+    signal dregOut : std_logic_vector((4 * 4) - 1 downto 0);
     signal dregMuxOut : std_logic_vector(3 downto 0);
     signal ringOut : std_logic_vector(3 downto 0);
     signal dispClkQ : std_logic_vector(DIV_CLK - 1 downto 0);
     signal bcdCount : std_logic_vector(1 downto 0);
+    signal writeWord: std_logic;
+    signal dregWD : std_logic_vector((4 * 4) - 1 downto 0);
 begin
     ringc: RingCounter port map(
         CLK => dispClkQ(DIV_CLK - 1),
@@ -82,16 +82,22 @@ begin
 
     wedemux: DemuxGeneric93 port map(   
         din => WE,
-        dout => weOut,
+        dout => weDemuxOut,
         sel => A);
+
+    weOut <= (others => '1') when writeWord = '1' else weDemuxOut; 
      
     dreg: for i in 0 to 3 generate 
         sri: SimpleRegister port map(
             CLK => CLK,
             CLR => CLR,
             L => weOut(i),
-            D => WD,
+            D => dregWD((4 * i + 4) - 1 downto (4 * i)),
             Q => dregOut((4 * i + 4) - 1 downto (4 * i)));
+    end generate;
+
+    wdi: for i in 0 to 3 generate
+        dregWD((4 * i + 4) - 1 downto (4 * i)) <= WD((4 * i + 4) - 1 downto (4 * i)) when writeWord = '1' else WD(3 downto 0);
     end generate;
 
     dregmux: MuxGeneric93 port map(
@@ -115,6 +121,7 @@ begin
         CLK => CLK,
         CLR => CLR,
         Q => dispClkQ);
+    
+    writeWord <= (not fun(0)) and fun(1) and (not A(0)) and (not A(1));
 
 end Behavioral;
-

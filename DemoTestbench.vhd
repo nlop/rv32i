@@ -18,14 +18,14 @@ architecture Behavioral of DemoTestbench is
         CLK, CLR : in std_logic;
         BTN : in std_logic_vector (4 downto 0);
         AN: out std_logic_vector(3 downto 0);
-        CX: out std_logic_vector(7 downto 0));
+        CX: out std_logic_vector(6 downto 0));
     end component;
     
     constant P : time := 1 ns;
     signal CLK, CLR : std_logic;
     signal BTN : std_logic_vector(4 downto 0);
     signal AN : std_logic_vector(3 downto 0);
-    signal CX : std_logic_vector(7 downto 0);
+    signal CX : std_logic_vector(6 downto 0);
 begin
 
 top1: DemoTop port map(

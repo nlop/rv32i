@@ -20,7 +20,7 @@ entity DemoTop is
     CLK, CLR : in std_logic;
     BTN : in std_logic_vector (4 downto 0);
     AN: out std_logic_vector(3 downto 0);
-    CX: out std_logic_vector(7 downto 0));
+    CX: out std_logic_vector(6 downto 0));
     constant CLK_DEBUG : integer := 3;
 end DemoTop;
 
@@ -66,12 +66,13 @@ architecture Behavioral of DemoTop is
     component SegmentDisplayDriver is
         generic(
                    DIV_CLK : integer := CLK_DEBUG);
-        port(
+    port(
         CLK, CLR, WE : in std_logic;
         A : in std_logic_vector(1 downto 0);
-        WD : in std_logic_vector(3 downto 0);
+        WD : in std_logic_vector(31 downto 0);
+        fun: in std_logic_vector(2 downto 0); 
         AN : out std_logic_vector(3 downto 0);
-        CX : out std_logic_vector(7 downto 0));
+        CX : out std_logic_vector(6 downto 0));
     end component;
     -- BCD
     component BCD is
@@ -155,7 +156,8 @@ begin
         CLR => CLR,
         WE => dispWE,
         A => addressBus(1 downto 0),
-        WD => writeBus(3 downto 0),
+        WD => writeBus(31 downto 0),
+        fun => funct3,
         AN => AN,
         CX => CX);
 
