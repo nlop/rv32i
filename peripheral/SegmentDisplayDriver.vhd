@@ -85,7 +85,7 @@ begin
         dout => weDemuxOut,
         sel => A);
 
-    weOut <= (others => '1') when writeWord = '1' else weDemuxOut; 
+    weOut <= (others => WE) when writeWord = '1' else weDemuxOut; 
      
     dreg: for i in 0 to 3 generate 
         sri: SimpleRegister port map(

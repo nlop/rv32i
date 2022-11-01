@@ -110,7 +110,7 @@ architecture Behavioral of DemoTop is
     signal controlWE: std_logic;
 
 begin
-    -- RAM (mapped to address 0x00000000 - 0x000003ff)
+    -- RAM (mapped to address 0x00000000 - 0x000000ff)
     ram1: RAM generic map (
         N => N,
         K => K,

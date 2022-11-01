@@ -42,11 +42,14 @@ clkp: process begin
     wait for P / 2;
 end process;
 
-init: process begin
+test: process begin
     CLR <= '1';
     wait for 22 ns;
     CLR <= '0';
-    BTN <= "00001";
+    wait for 12 ns;
+    BTN <= "00010";
+    wait for 10 ns;
+    BTN <= (others => '0');
     wait;
 end process;
 
