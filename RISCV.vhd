@@ -19,7 +19,8 @@ entity RISCV is
     ramWD, aluResult  : out std_logic_vector(N - 1 downto 0);
     pcout : out std_logic_vector(N - 1 downto 0);
     funct3 : out std_logic_vector(2 downto 0);
-    ramWE : out std_logic);
+    ramWE : out std_logic;
+    debug: out std_logic_vector(N - 1 downto 0));
     -- Constant
     constant N_CONTROLSIG_E : integer := 16;
     constant N_CONTROLSIG_M : integer := 7;
@@ -37,7 +38,8 @@ architecture Behavioral of RISCV is
         port ( WD3 : in std_logic_vector (N - 1 downto 0);
         A3, A1, A2 : in std_logic_vector (NREG - 1 downto 0);
         CLK, CLR, WE3 : in std_logic;
-        RD1, RD2 : out std_logic_vector (N - 1 downto 0));
+        RD1, RD2 : out std_logic_vector (N - 1 downto 0);
+        DEB: out std_logic_vector(N - 1 downto 0));
     end component;
     -- Extender
     component Extender is
@@ -260,7 +262,8 @@ begin
                  CLR => CLR,
                  WE3 => controlW(2),
                  RD1 => RD1,
-                 RD2 => RD2);
+                 RD2 => RD2,
+                 DEB => debug);
     -- ALU unit
     alu: ALUNbits generic map (N => N, LOG2N => LOG2N)
     port map (

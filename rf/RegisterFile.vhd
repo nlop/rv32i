@@ -15,11 +15,12 @@ entity RegisterFile is
     port ( WD3 : in std_logic_vector (N - 1 downto 0);
     A3, A1, A2 : in std_logic_vector (NREG - 1 downto 0);
     CLK, CLR, WE3 : in std_logic;
-    RD1, RD2 : out std_logic_vector (N - 1 downto 0));
+    RD1, RD2 : out std_logic_vector (N - 1 downto 0);
+    DEB: out std_logic_vector(N - 1 downto 0));
 end RegisterFile;
 
 architecture Behavioral of RegisterFile is
-
+    constant DEBUG_REG : integer := 27; -- Debug register
     component SimpleRegister is
         generic ( N : integer := 16);
         port ( D : in std_logic_vector (N - 1 downto 0);
@@ -99,6 +100,7 @@ begin
                     clk => CLK,
                     clr => CLR);
     end generate;
+    DEB <= regReadBus((N * DEBUG_REG + 2**NREG) - 1 downto (N * DEBUG_REG));
     RD1 <= RD1_aux;
     RD2 <= RD2_aux;
 end Behavioral;

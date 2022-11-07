@@ -37,7 +37,8 @@ architecture Behavioral of DemoTop is
         ramWD, aluResult  : out std_logic_vector(N - 1 downto 0);
         pcout : out std_logic_vector(N - 1 downto 0);
         funct3 : out std_logic_vector(2 downto 0);
-        ramWE : out std_logic);
+        ramWE : out std_logic;
+        debug: out std_logic_vector(N - 1 downto 0));
     end component;
     -- RAM
     component RAM is       
@@ -68,9 +69,7 @@ architecture Behavioral of DemoTop is
                    DIV_CLK : integer := CLK_DEBUG);
     port(
         CLK, CLR, WE : in std_logic;
-        A : in std_logic_vector(1 downto 0);
         WD : in std_logic_vector(31 downto 0);
-        fun: in std_logic_vector(2 downto 0); 
         AN : out std_logic_vector(3 downto 0);
         CX : out std_logic_vector(6 downto 0));
     end component;
@@ -109,6 +108,9 @@ architecture Behavioral of DemoTop is
     signal writeBus, readBus: std_logic_vector(N - 1 downto 0);
     signal controlWE: std_logic;
 
+-- > DEBUG
+    signal regDebug : std_logic_vector(N - 1 downto 0);
+
 begin
     -- RAM (mapped to address 0x00000000 - 0x000000ff)
     ram1: RAM generic map (
@@ -142,7 +144,8 @@ begin
         aluResult => addressBus,
         pcout => pc,
         funct3 => funct3,
-        ramWE => controlWE);
+        ramWE => controlWE,
+        debug => regDebug);
 
     -- Debouncer (mapped to address 0x80000000)
     dbnc: Debouncer port map(
@@ -154,10 +157,8 @@ begin
     dispdr: SegmentDisplayDriver port map(
         CLK => CLK,
         CLR => CLR,
-        WE => dispWE,
-        A => addressBus(1 downto 0),
-        WD => writeBus(31 downto 0),
-        fun => funct3,
+        WE => '1',
+        WD => regDebug,
         AN => AN,
         CX => CX);
 
