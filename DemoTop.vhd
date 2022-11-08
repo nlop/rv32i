@@ -20,7 +20,8 @@ entity DemoTop is
     CLK, CLR : in std_logic;
     BTN : in std_logic_vector (4 downto 0);
     AN: out std_logic_vector(3 downto 0);
-    CX: out std_logic_vector(6 downto 0));
+    CX: out std_logic_vector(6 downto 0);
+    LED: out std_logic_vector(15 downto 0));
     constant CLK_DEBUG : integer := 3;
 end DemoTop;
 
@@ -158,7 +159,7 @@ begin
         CLK => CLK,
         CLR => CLR,
         WE => '1',
-        WD => regDebug,
+        WD => (others => '0'),
         AN => AN,
         CX => CX);
 
@@ -167,6 +168,8 @@ begin
         readBus <= ramRD when '0',
                    (zeroPad & buttonRD) when others;
 
+    -- LED reg debug
+    LED <= regDebug(15 downto 0);
     -- WD signals
     ramWE <= not addressBus(30) and controlWE;
     dispWE <= addressBus(30) and controlWE;

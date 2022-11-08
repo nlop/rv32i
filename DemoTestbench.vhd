@@ -8,17 +8,18 @@ end DemoTestbench;
 
 architecture Behavioral of DemoTestbench is
     component DemoTop is
-        generic(
-                   N : integer := 32;
-                   LOG2N : integer := 5;
-                   M : integer := 5; -- 
-                   ROM_ADDRS : integer := 32;
-                   K : integer := 10);
-        port(
-        CLK, CLR : in std_logic;
-        BTN : in std_logic_vector (4 downto 0);
-        AN: out std_logic_vector(3 downto 0);
-        CX: out std_logic_vector(6 downto 0));
+    generic(
+               N : integer := 32;
+               LOG2N : integer := 5;
+               M : integer := 5; -- 
+               ROM_ADDRS : integer := 32;
+               K : integer := 10);
+    port(
+    CLK, CLR : in std_logic;
+    BTN : in std_logic_vector (4 downto 0);
+    AN: out std_logic_vector(3 downto 0);
+    CX: out std_logic_vector(6 downto 0);
+    LED: out std_logic_vector(15 downto 0));
     end component;
     
     constant P : time := 1 ns;
@@ -26,6 +27,7 @@ architecture Behavioral of DemoTestbench is
     signal BTN : std_logic_vector(4 downto 0);
     signal AN : std_logic_vector(3 downto 0);
     signal CX : std_logic_vector(6 downto 0);
+    signal LED: std_logic_vector(15 downto 0);
 begin
 
 top1: DemoTop port map(
@@ -33,7 +35,8 @@ top1: DemoTop port map(
     CLR => CLR,
     BTN => BTN,
     AN => AN,
-    CX => CX);
+    CX => CX,
+    LED => LED);
 
 clkp: process begin
     CLK <= '0';
@@ -48,6 +51,10 @@ test: process begin
     CLR <= '0';
     wait for 12 ns;
     BTN <= "00010";
+    wait for 12 ns;
+    BTN <= "00001";
+    wait for 12 ns;
+    BTN <= "10001";
     wait for 10 ns;
     BTN <= (others => '0');
     wait;
