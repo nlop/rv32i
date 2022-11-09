@@ -27,7 +27,7 @@ architecture Behavioral of DigitEncoder is
         "0000011", -- b (0x03)
         "1000110", -- c (0x46)
         "0100001", -- d (0x21)
-        "0011000", -- e (0x18)
+        "0000110", -- e (0x06)
         "0001110"); -- f (0x0e)
 begin
     RD <= mem(to_integer(unsigned(A)));
