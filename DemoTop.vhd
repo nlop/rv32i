@@ -15,14 +15,14 @@ entity DemoTop is
                LOG2N : integer := 5;
                M : integer := 5; -- 
                ROM_ADDRS : integer := 32;
-               K : integer := 10);
+               K : integer := 8;
+               CLK_DIV: integer := 12);
     port(
-    CLK, CLR : in std_logic;
+    CLK_BOARD, CLR : in std_logic;
     BTN : in std_logic_vector (4 downto 0);
     AN: out std_logic_vector(3 downto 0);
     CX: out std_logic_vector(6 downto 0);
     LED: out std_logic_vector(15 downto 0));
-    constant CLK_DEBUG : integer := 3;
 end DemoTop;
 
 architecture Behavioral of DemoTop is
@@ -67,7 +67,7 @@ architecture Behavioral of DemoTop is
     -- Four 7-segment display driver
     component SegmentDisplayDriver is
         generic(
-                   DIV_CLK : integer := CLK_DEBUG);
+                   DIV_CLK : integer := CLK_DIV);
     port(
         CLK, CLR, WE : in std_logic;
         WD : in std_logic_vector(31 downto 0);
@@ -83,24 +83,28 @@ architecture Behavioral of DemoTop is
     end component;
     -- Button debouncer
     component debouncer is
-        Generic ( DEBNC_CLOCKS : INTEGER range 2 to (INTEGER'high) := 2**CLK_DEBUG;
+        Generic ( DEBNC_CLOCKS : INTEGER range 2 to (INTEGER'high) := 2**CLK_DIV;
                   PORT_WIDTH : INTEGER range 1 to (INTEGER'high) := 5);
         Port ( SIGNAL_I : in  STD_LOGIC_VECTOR ((PORT_WIDTH - 1) downto 0);
                CLK_I : in  STD_LOGIC;
                SIGNAL_O : out  STD_LOGIC_VECTOR ((PORT_WIDTH - 1) downto 0));
     end component;
+    -- Clock Wizard Vergilog module
+    -- component clk_wiz_0 is 
+    -- port (clk_out1: out std_logic;
+    --     reset: in std_logic;
+    --     clk_in1: in std_logic);
+    -- end component;
 --          == Signals == 
 --      > PC
     signal pc: std_logic_vector(N - 1 downto 0);
     signal instr: std_logic_vector(N - 1 downto 0);
 --      > RAM
     signal ramRD : std_logic_vector(N - 1 downto 0);
-    signal ramWE: std_logic;
 --      > Core
     signal funct3: std_logic_vector(2 downto 0);
     signal addressBus: std_logic_vector(N - 1 downto 0);
 --      > Display
-    signal dispWE: std_logic;
     signal dispWD: std_logic_vector(3 downto 0);
 --      > Button
     signal buttonRD: std_logic_vector(4 downto 0);
@@ -108,11 +112,19 @@ architecture Behavioral of DemoTop is
 --      > IO buses
     signal writeBus, readBus: std_logic_vector(N - 1 downto 0);
     signal controlWE: std_logic;
+    signal controlBus : std_logic_vector(1 downto 0);
 
 -- > DEBUG
     signal regDebug : std_logic_vector(N - 1 downto 0);
-
+-- > Clock Wiz. 
+    signal CLK : std_logic;
 begin
+    CLK <= CLK_BOARD;
+    -- CK's instance
+    -- cw0: clk_wiz_0 port map( 
+    --     clk_out1 => CLK,
+    --     reset => CLR,
+    --     clk_in1 => CLK_BOARD);
     -- RAM (mapped to address 0x00000000 - 0x000000ff)
     ram1: RAM generic map (
         N => N,
@@ -121,7 +133,7 @@ begin
     port map (
         A => addressBus,
         WD => writeBus,
-        WE => ramWE,
+        WE => controlBus(0),
         CLK => CLK,
         fun => funct3,
         RD => ramRD);
@@ -154,12 +166,12 @@ begin
         SIGNAL_I => BTN,
         SIGNAL_O => buttonRD);
 
-    -- Display driver instance (mapped to address 0x40000000 - 0x40000003)
+    -- Display driver instance (mapped to address 0x40000000)
     dispdr: SegmentDisplayDriver port map(
         CLK => CLK,
         CLR => CLR,
-        WE => '1',
-        WD => (others => '0'),
+        WE => controlBus(1),
+        WD => writeBus,
         AN => AN,
         CX => CX);
 
@@ -168,9 +180,11 @@ begin
         readBus <= ramRD when '0',
                    (zeroPad & buttonRD) when others;
 
+    -- WD signals
+    wdmux: with addressBus(30) select
+        controlBus <= "0" & controlWE when '0',
+                      controlWE & "0" when others;
+    
     -- LED reg debug
     LED <= regDebug(15 downto 0);
-    -- WD signals
-    ramWE <= not addressBus(30) and controlWE;
-    dispWE <= addressBus(30) and controlWE;
 end Behavioral;

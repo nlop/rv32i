@@ -7,7 +7,7 @@ SHELL=/bin/bash
 .SHELLFLAGS=-O extglob -c
 GHDL=ghdl
 GHDLFLAGS= -fsynopsys
-GHDLRUNFLAGS=--wave=testbench.ghw --stop-time=6us
+GHDLRUNFLAGS=--wave=testbench.ghw --stop-time=2us
 
 # Default target
 all: demotop

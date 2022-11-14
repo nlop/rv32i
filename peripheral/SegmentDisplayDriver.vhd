@@ -88,10 +88,10 @@ begin
         Q => bcdCount);
 
     -- BCD-to-AN
-    AN(0) <= (not bcdCount(0)) and (not bcdCount(1));
-    AN(1) <= bcdCount(0) and (not bcdCount(1));
-    AN(2) <= (not bcdCount(0)) and bcdCount(1);
-    AN(3) <= bcdCount(0) and bcdCount(1);
+    AN(0) <= bcdCount(0) or bcdCount(1);
+    AN(1) <= (not bcdCount(0)) or bcdCount(1);
+    AN(2) <= bcdCount(0) or (not bcdCount(1));
+    AN(3) <= (not bcdCount(0)) or (not bcdCount(1));
 
     dige: DigitEncoder port map(
         A => dregMuxOut,
