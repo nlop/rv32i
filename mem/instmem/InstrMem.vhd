@@ -168,7 +168,7 @@ constant data : InstrMemArr := (
     -- Demo main
     x"40000" & S11 & U_OP_055,                          -- [xx] lui s11, 0x40000
     x"07c" & ZERO & F3_ADD & SP & I_OP_019,             -- [00] init: addi sp, zero, 0x07c  # init sp
-    x"003" & ZERO & F3_ADD & S1 & I_OP_019,             -- [04] addi s1, zero, 0x0    # N
+    x"004" & ZERO & F3_ADD & S1 & I_OP_019,             -- [04] addi s1, zero, 0x0    # N
     IMM_0x000 & ZERO & F3_ADD & S2 & I_OP_019,          -- [08] addi s2, zero, 0x0    # alreadyPushed
     x"040" & ZERO & F3_ADD & S3 & I_OP_019,             -- [0C] addi s3, zero, 0x40   # max(N)
     IMM_0x000 & ZERO & F3_ADD & A0 & I_OP_019,          -- [10] addi a0, zero, 0x0
@@ -223,21 +223,21 @@ constant data : InstrMemArr := (
     IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,         -- [D4] ret (jalr, zero, ra, 0x0)
 
     -- Branch predictor demo (nth-term sum)
-    x"ffc" & SP & F3_ADD & SP & I_OP_019,           -- [DC, 00] addi sp, sp, -4
-    IMM_H_0x000 & RA & SP & F3_WORD & IMM_L_0x000 & S_OP_035, -- [E0, 04] sw ra, 0x0(sp)
-    IMM_0x000 & ZERO & F3_ADD & T0 & I_OP_019,      -- [E4, 08] addi t0, zero, 0x0
-    IMM_0x000 & A0 & F3_ADD & T1 & I_OP_019,        -- [E8, 0C] addi t1, a0, 0
-    IMM_0x000 & ZERO & F3_ADD & T2 & I_OP_019,      -- [EC, 10] addi t2, zero, 0x0
-    x"02000" & RA & J_OP_111,                       -- [F0, 14] call series
-    F7_ZERO & T2 & ZERO & F3_ADD & A0 & R_OP_051,   -- [F4, 18] add a0, t2, zero
-    IMM_0x000 & SP & F3_WORD & RA & I_OP_003,       -- [F8, 1C] lw ra, 0(sp)
-    x"004" & SP & F3_ADD & SP & I_OP_019,           -- [FC, 20] addi sp, sp, 4
-    IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,     -- [100,24] ret (jalr, zero, ra, 0x0)
-    x"ffdff" & ZERO & J_OP_111,                     -- [104,28] j nop
-    F7_ZERO & T0 & T2 & F3_ADD & T2 & R_OP_051,     -- [108,2C] sum: add t2, t2, t0
-    IMM_0x001 & T0 & F3_ADD & T0 & I_OP_019,        -- [10C,30] addi t0, t0, 0x1
-    x"f" & O"7" & T1 & T0 & F3_LT & "11001" & B_OP_099, -- [110,34] series: blt t0, t1, sum (-8)
-    IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,     -- [114,38] ret (jalr, zero, ra, 0x0)
+    -- x"ffc" & SP & F3_ADD & SP & I_OP_019,           -- [DC, 00] addi sp, sp, -4
+    -- IMM_H_0x000 & RA & SP & F3_WORD & IMM_L_0x000 & S_OP_035, -- [E0, 04] sw ra, 0x0(sp)
+    -- IMM_0x000 & ZERO & F3_ADD & T0 & I_OP_019,      -- [E4, 08] addi t0, zero, 0x0
+    -- IMM_0x000 & A0 & F3_ADD & T1 & I_OP_019,        -- [E8, 0C] addi t1, a0, 0
+    -- IMM_0x000 & ZERO & F3_ADD & T2 & I_OP_019,      -- [EC, 10] addi t2, zero, 0x0
+    -- x"02000" & RA & J_OP_111,                       -- [F0, 14] call series
+    -- F7_ZERO & T2 & ZERO & F3_ADD & A0 & R_OP_051,   -- [F4, 18] add a0, t2, zero
+    -- IMM_0x000 & SP & F3_WORD & RA & I_OP_003,       -- [F8, 1C] lw ra, 0(sp)
+    -- x"004" & SP & F3_ADD & SP & I_OP_019,           -- [FC, 20] addi sp, sp, 4
+    -- IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,     -- [100,24] ret (jalr, zero, ra, 0x0)
+    -- x"ffdff" & ZERO & J_OP_111,                     -- [104,28] j nop
+    -- F7_ZERO & T0 & T2 & F3_ADD & T2 & R_OP_051,     -- [108,2C] sum: add t2, t2, t0
+    -- IMM_0x001 & T0 & F3_ADD & T0 & I_OP_019,        -- [10C,30] addi t0, t0, 0x1
+    -- x"f" & O"7" & T1 & T0 & F3_LT & "11001" & B_OP_099, -- [110,34] series: blt t0, t1, sum (-8)
+    -- IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,     -- [114,38] ret (jalr, zero, ra, 0x0)
 
     -- U-type instruction demo
     -- x"abcde" & T0 & U_OP_055,                   -- lui t0, 0xabcde
@@ -246,36 +246,28 @@ constant data : InstrMemArr := (
     -- x"ffdff" & ZERO & J_OP_111,                 -- j nop
 
     -- Recursion demo (fibonacci), sol: S2 = 0x1055 when n = 19
-    -- IMM_0x100 & ZERO & F3_ADD & SP & I_OP_019,      -- [00] addi sp, zero, 0x100  # init sp at 0x100
-    -- IMM_0x108 & ZERO & F3_ADD & S1 & I_OP_019,      -- [04] addi s1, zero, 0x108
-    -- IMM_0x000 & ZERO & F3_ADD & A0 & I_OP_019,      -- [08] addi a0, zero, 0x000 # a = 0
-    -- IMM_0x001 & ZERO & F3_ADD & A1 & I_OP_019,      -- [0C] addi a1, zero, 0x001 # b = 1
-    -- x"014" & ZERO & F3_ADD & A2 & I_OP_019,         -- [10] addi a2, zero, 0x014 # n = 20 (n - 1)
-    -- x"ff4" & SP & F3_ADD & SP & I_OP_019,           -- [14] addi sp, sp, -12
-    -- IMM_H_0x000 & A0 & SP & F3_WORD & IMM_L_0x000 & S_OP_035, -- [18] sw a0, 0x000(sp) # push arguments onto the stack
-    -- IMM_H_0x004 & A1 & SP & F3_WORD & IMM_L_0x004 & S_OP_035, -- [1C] sw a1, 0x004(sp)
-    -- IMM_H_0x008 & A2 & SP & F3_WORD & IMM_L_0x008 & S_OP_035, -- [20] sw a2, 0x008(sp)
-    -- x"02000" & RA & J_OP_111,                       -- [24] call fibo
-    -- F7_ZERO & ZERO & A0 & F3_ADD & S2 & R_OP_051,   -- [28] add s2, a0, zero
-    -- IMM_H_0x000 & S2 & S1 & F3_WORD & IMM_L_0x000 & S_OP_035, -- [2C] sw s2, 0x000(s1) 
-    -- IMM_0x000 & SP & F3_WORD & A0 & I_OP_003,       -- [30] lw a0, 0x000(sp) # pop arguments from stack
-    -- IMM_0x004 & SP & F3_WORD & A1 & I_OP_003,       -- [34] lw a1, 0x004(sp)
-    -- IMM_0x008 & SP & F3_WORD & A2 & I_OP_003,       -- [38] lw a2, 0x008(sp)
-    -- NOP,                                            -- [3C] done: nop
-    -- x"ffdff" & ZERO & J_OP_111,                     -- [40] j done
-    -- x"ffc" & SP & F3_ADD & SP & I_OP_019,           -- [44] fibo: addi sp, sp, -4
-    -- IMM_H_0x000 & RA & SP & F3_WORD & IMM_L_0x000 & S_OP_035, -- [48] sw a0, 0x000(sp) # push ra onto the stack
-    -- IMM_0x001 & ZERO & F3_ADD & T0 & I_OP_019,      -- [4C] addi a1, zero, 1
-    -- F7_ONE & T0 & A2 & F3_ADD & A2 & R_OP_051,      -- [50] sub  a2, a2, t0
-    -- x"0" & "000" & A2 & ZERO & F3_LT & "10000" & B_OP_099, -- [54] blt zero, a2, rec
-    -- IMM_0x000 & SP & F3_WORD & RA & I_OP_003,       -- [58] return: lw ra, 0x000(sp)
-    -- IMM_0x004 & SP & F3_ADD & SP & I_OP_019,        -- [5C] addi sp, sp, 4
-    -- IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,     -- [60] ret (jalr, zero, ra, 0x0)
-    -- F7_ZERO & ZERO & A1 & F3_ADD & T1 & R_OP_051,   -- [64] rec: add t1, zero, a1
-    -- F7_ZERO & A0 & A1 & F3_ADD & A1 & R_OP_051,     -- [68] add a1, a1, a0
-    -- F7_ZERO & ZERO & T1 & F3_ADD & A0 & R_OP_051,   -- [6C] add a0, zero, t1
-    -- x"fd5ff" & RA & J_OP_111,                       -- [70] call fibo
-    -- x"fe5ff" & ZERO & J_OP_111,                     -- [74] j return
+    IMM_0x001 & A0 & F3_ADD & A2 & I_OP_019,        -- [DC,00] addi a2, zero, 0x014 # n = 20 (n - 1)
+    IMM_0x000 & ZERO & F3_ADD & A0 & I_OP_019,      -- [E0,04] addi a0, zero, 0x000 # a = 0
+    IMM_0x001 & ZERO & F3_ADD & A1 & I_OP_019,      -- [E4,08] addi a1, zero, 0x001 # b = 1
+    x"ffc" & SP & F3_ADD & SP & I_OP_019,           -- [E8,0C] addi sp, sp, -4
+    IMM_H_0x000 & RA & SP & F3_WORD & IMM_L_0x000 & S_OP_035, -- [EC,10] sw ra, 0x000(sp) # push arguments onto the stack
+    x"01000" & RA & J_OP_111,                       -- [F0,14] call fibo
+    IMM_0x000 & SP & F3_WORD & RA & I_OP_003,       -- [F4] lw ra, 0x000(sp)
+    x"004" & SP & F3_ADD & SP & I_OP_019,           -- [F8] addi sp, sp, 4
+    IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,     -- [FC] ret (jalr, zero, ra, 0x0)
+    x"ffc" & SP & F3_ADD & SP & I_OP_019,           -- [100] fibo: addi sp, sp, -4
+    IMM_H_0x000 & RA & SP & F3_WORD & IMM_L_0x000 & S_OP_035, -- [104] sw a0, 0x000(sp) # push ra onto the stack
+    IMM_0x001 & ZERO & F3_ADD & T0 & I_OP_019,      -- [108] addi a1, zero, 1
+    F7_ONE & T0 & A2 & F3_ADD & A2 & R_OP_051,      -- [10C] sub  a2, a2, t0
+    x"0" & "000" & A2 & ZERO & F3_LT & "10000" & B_OP_099, -- [110] blt zero, a2, rec
+    IMM_0x000 & SP & F3_WORD & RA & I_OP_003,       -- [114] return: lw ra, 0x000(sp)
+    IMM_0x004 & SP & F3_ADD & SP & I_OP_019,        -- [118] addi sp, sp, 4
+    IMM_0x000 & RA & F3_ZERO & ZERO & I_OP_103,     -- [11C] ret (jalr, zero, ra, 0x0)
+    F7_ZERO & ZERO & A1 & F3_ADD & T1 & R_OP_051,   -- [120] rec: add t1, zero, a1
+    F7_ZERO & A0 & A1 & F3_ADD & A1 & R_OP_051,     -- [124] add a1, a1, a0
+    F7_ZERO & ZERO & T1 & F3_ADD & A0 & R_OP_051,   -- [128] add a0, zero, t1
+    x"fd5ff" & RA & J_OP_111,                       -- [12C] call fibo
+    x"fe5ff" & ZERO & J_OP_111,                     -- [130] j return
 
     -- Sorting demo
     -- x"038" & ZERO & F3_ADD & S1 & I_OP_019,                     -- [000] addi s1, zero, 0x38 # seed for pseudo-rand function
