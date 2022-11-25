@@ -1,0 +1,78 @@
+\documentclass[letterpaper]{article}
+\usepackage[spanish]{babel}
+\usepackage[T1]{fontenc}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz-timing,multirow}
+%\tikzset{timing/draw grid}
+\usetikztiminglibrary[rising arrows, arrow tip=latex]{clockarrows}
+\begin{document}
+
+\section{Control de saltos}
+
+\begin{verbatim}
+    flushD and =
+        wpcSel := `000' 
+    else
+        wpcSel := `001' 
+\end{verbatim}
+
+
+
+\section{Evaluador de condiciones}
+\begin{tabular}{c| l}
+    funct3      & bre \\\hline
+    \verb%000%  & $EQ = Z$ \\
+    \verb%001%  & $NE = ~Z$ \\
+    \verb%100%  & $LT = N \oplus OV$ \\
+    \verb%101%  & $GE = ~LT$ \\
+    \verb%110%  & $LTU = ~C$ \\
+    \verb%111%  & $GEU = C$ \\
+    \verb%x%   & \verb%0% \\
+
+\end{tabular}
+
+\section{ALU}
+\subsection{Descripción}
+Unidad para realizar operaciones lógicas y aritméticas que producen diferentes
+banderas dependiendo del resultado de la operación. Estas banderas son 
+\begin{tabular}{c|c|c|c|l l}
+    aluOP       & funct7\textsubscript{5}   & funct3    & Operación &  \\\hline
+    \verb%00%   & \verb%x%    & \verb%x%        & ADD   & $S = A + B$ \\
+    \verb%01%   & \verb%x%    & \verb%x%        & SUB   & $S = A - B$ \\
+    \verb%11%   & \verb%1%    & \verb%000%      & SUB   & $S = A - B$ \\
+    \verb%1x%   & \verb%0%    & \verb%000%      & ADD   & $S = A + B$ \\
+                & \verb%x%    & \verb%001%      & SLL   & $S = A \ll B$ \\
+                & \verb%x%    & \verb%010%      & SLT   & $S = A < B$ \\
+                & \verb%x%    & \verb%011%      & SLTU  & $S = A < B$ \\
+                & \verb%x%    & \verb%100%      & XOR   & $S = A \oplus B$ \\
+                & \verb%0%    & \verb%101%      & SRL   & $S = A \gg B$ \\
+                & \verb%1%    & \verb%101%      & SRA   & $S = A \gg B$ \\
+                & \verb%x%    & \verb%110%      & OR    & $S = A + B$ \\
+                & \verb%x%    & \verb%111%      & AND   & $S = A \bullet B$ \\
+\end{tabular}
+
+\section{Archivo de Registros}
+\begin{tabular}{c|c|c|l}
+    CLR & CLK               & WE    & Operación \\\hline
+    1   & x                 & x     & Reset \\
+    0   & \texttiming{2{c}} & 0     & Banco = Banco \\
+    0   & \texttiming{2{c}} & 1     & Banco[\verb%A3%] = \verb%WD3% \\
+    x   & x                 & x     & RD1 = Banco[\verb%A1%] \\
+        &                   &       & RD2 = Banco[\verb%A2%] \\
+\end{tabular}
+
+\section{Memoria de Datos (RAM)}
+\begin{tabular}{c|c|c|l}
+    CLK                 & WE        & funct3        & Operación \\\hline
+    \texttiming{2{c}}   & \verb%1%  & \verb%000%    & bancoRAM[\verb%A%]\textsubscript{7:0} = \verb%WD%\textsubscript{7:0} \\
+                        &           & \verb%001%    & bancoRAM[\verb%A%]\textsubscript{15:0} = \verb%WD%\textsubscript{15:0} \\
+                        &           & \verb%x%      & bancoRAM[\verb%A%]\textsubscript{31:0} = \verb%WD% \\
+    x                   & \verb%0%  & \verb%000%    & \verb%RD% = signExt(bancoRAM[Dir]\textsubscript{7:0}) \\
+                        &           & \verb%100%    & \verb%RD% = zeroExt(bancoRAM[Dir]\textsubscript{7:0}) \\
+                        &           & \verb%001%    & \verb%RD% = signExt(bancoRAM[Dir]\textsubscript{15:0}) \\
+                        &           & \verb%101%    & \verb%RD% = zeroExt(bancoRAM[Dir]\textsubscript{15:0}) \\
+                        &           & \verb%x%      & \verb%RD% = bancoRAM[Dir]\textsubscript{31:0} \\
+\end{tabular}
+
+\end{document}
