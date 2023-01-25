@@ -1,5 +1,5 @@
 # RISC-V Core
-Basic RISC-V processor implementation using VHDL using the RV32I ISA. Based on Harris & Harris's _Digital Design and Computer Architecture RISC-V edition_ and
+Basic RISC-V processor implementation using VHDL and the RV32I ISA. Based on Harris & Harris's _Digital Design and Computer Architecture RISC-V edition_ and
 Patterson & Hennessy's _Computer Organization and Design The Hardware/Software interface_. 
 
 # Progress
@@ -15,3 +15,8 @@ Patterson & Hennessy's _Computer Organization and Design The Hardware/Software i
 - VGA output
 
 # Documents
+- [Implementation notes (PDF, spanish)](doc/RV32I-doc.pdf)
+- [Diagram (full-res) (PDF)](doc/RV32I-fullres.pdf)
+
+# Demo
+![N-th sum demo](doc/demo1.mp4)
